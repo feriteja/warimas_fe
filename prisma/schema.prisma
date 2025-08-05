@@ -1,0 +1,98 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Enums
+
+enum QuantityType {
+    kg
+    liter
+    sack
+    unit
+}
+
+enum OrderStatus {
+    pending
+    paid
+    progress
+    shipped
+    cancelled
+}
+
+enum MovementType {
+    purchase // Incoming stock (restock)
+    sale // Outgoing stock (order shipped)
+    return // Incoming (customer returned)
+    adjustment // Manual correction
+}
+
+// Models
+
+model Category {
+    id        String    @id @default(uuid())
+    name      String    @unique
+    products  Product[]
+    createdAt DateTime  @default(now())
+}
+
+model Product {
+    id          String    @id @default(uuid())
+    name        String
+    description String?
+    category    Category? @relation(fields: [categoryId], references: [id])
+    categoryId  String?
+    variants    Variant[]
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+}
+
+model Variant {
+    id            String          @id @default(uuid())
+    product       Product         @relation(fields: [productId], references: [id])
+    productId     String
+    name          String
+    quantityType  QuantityType
+    price         Float
+    stock         Int // Current stock level
+    OrderItem     OrderItem[]
+    StockMovement StockMovement[] // Link to stock movements
+}
+
+// Customer Order (Sales)
+
+model Order {
+    id        String      @id @default(uuid())
+    customer  String? // optional for now
+    items     OrderItem[]
+    status    OrderStatus @default(pending)
+    total     Float
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+}
+
+model OrderItem {
+    id        String  @id @default(uuid())
+    order     Order   @relation(fields: [orderId], references: [id])
+    orderId   String
+    variant   Variant @relation(fields: [variantId], references: [id])
+    variantId String
+    quantity  Int
+    unitPrice Float // price at time of order
+}
+
+// Inventory Change Log
+
+model StockMovement {
+    id        String       @id @default(uuid())
+    variant   Variant      @relation(fields: [variantId], references: [id])
+    variantId String
+    type      MovementType
+    quantity  Int // positive or negative
+    note      String?
+    createdAt DateTime     @default(now())
+}

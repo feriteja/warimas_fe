@@ -2,17 +2,23 @@ import Link from "next/link";
 import CartNav from "./CartNav";
 import Image from "next/image";
 import { Search, User } from "lucide-react";
+import MailNav from "./MailNav";
+import NotifNav from "./NotifNav";
 
 export default function Navbar() {
   return (
-    <nav className="w-full relative top-0 h-16 md:h-20 space-x-2 md:space-x-4 bg-white py-3  px-3 md:px-10 shadow-xs z-10 flex items-center justify-between">
+    <nav className="w-full group relative top-0 h-16 md:h-20 space-x-2 md:space-x-4 bg-white py-3  px-3 md:px-10 shadow-xs z-10 flex items-center justify-between">
       {/* Logo Section */}
-      <Link href="/" className="flex items-center space-x-2">
+      <Link
+        href="/"
+        className="flex items-center space-x-2 group-focus-within:hidden "
+      >
         <div className="relative h-10 w-10 sm:h-12 sm:w-12">
           <Image
             src={"/logo/logonobgnoword.png"}
             alt="warimas logo"
             fill
+            sizes="(max-width: 640px) 40px, 48px"
             className="object-contain"
           />
         </div>
@@ -21,10 +27,12 @@ export default function Navbar() {
         </span>
       </Link>
 
-      <span className="font-semibold md:ml-4">Kategori</span>
+      <span className="font-semibold hidden md:block md:ml-4 group-focus-within:hidden">
+        Kategori
+      </span>
 
       {/* Search Bar */}
-      <div className="flex transition-all py-1 bg-white md:flex-1 group focus-within:absolute focus-within:left-0 focus-within:right-0  px-4  border border-black/20 rounded-xl items-center z-10  focus-within:ring-1 focus-within:ring-green-500 focus-within:border-green-500">
+      <div className="flex transition-all py-1 duration-200 bg-gray-50 md:flex-1 group focus-within:absolute focus-within:left-10 focus-within:right-10  px-4  border border-black/20 rounded-xl items-center z-10  focus-within:ring-1 focus-within:ring-green-500 focus-within:border-green-500">
         <label htmlFor="search">
           <Search />
         </label>
@@ -33,14 +41,16 @@ export default function Navbar() {
           name="search"
           type="text"
           placeholder="Belanja apa ya ?"
-          className=" w-full   focus:w-full md:block  px-4 py-2 text-md font-semibold focus:outline-none  "
+          className=" w-full focus:w-full md:block  px-4 py-2 text-md font-semibold focus:outline-none  "
         />
       </div>
 
       {/* Right Section: Actions */}
-      <div className="flex items-center space-x-2 md:space-x-6">
+      <div className="flex items-center space-x-2 md:space-x-6 group-focus-within:hidden">
         {/* Cart */}
         <CartNav />
+        <NotifNav />
+        <MailNav />
 
         {/* Auth Buttons (Placeholder) */}
         <button className="text-md rounded-md text-white  px-4 py-1 bg-green-500 cursor-pointer hidden md:block">

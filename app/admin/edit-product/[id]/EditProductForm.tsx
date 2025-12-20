@@ -3,8 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { updateProduct } from "../../action";
-import { ProductType, VariantInputType } from "@/types/global";
+// import { updateProduct } from "../../../actions/productActions";
 
 type ProductFormData = {
   productId: string;
@@ -41,7 +40,7 @@ export default function EditProductPage({ product }: { product: ProductType }) {
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-md mt-8">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">✏️ Edit Product</h1>
 
-      <form ref={formRef} action={updateProduct} className="space-y-6">
+      <form ref={formRef} action={() => {}} className="space-y-6">
         <input type="hidden" {...register("productId")} />
 
         <div>

@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Warimas",
@@ -15,8 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={` antialiased`}>
-        <Navbar />
+        {/* <Navbar /> */}
         {children}
+        <Toaster />
       </body>
     </html>
   );

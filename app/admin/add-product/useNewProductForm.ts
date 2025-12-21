@@ -44,8 +44,6 @@ export function useNewProductForm() {
         categoryId: data.categoryId,
       });
 
-      console.log({ productId: product.createProduct.id });
-
       /** 3️⃣ Upload variant images & build payload */
       const variantPayload = await Promise.all(
         data.variants.map(async (variant) => {

@@ -38,52 +38,6 @@ export function NewProductForm() {
   );
   const [subCategories, setSubCategories] = useState<SubCategoryType[]>([]);
 
-  const [selectedSubCategory, setSelectedSubCategory] =
-    useState<SubCategoryType | null>(null);
-
-  const onAddCategory = useCallback(async (name: string) => {
-    const toastLoading = showLoadingToast(
-      `Kategory: ${capitalizeFirstLetter(name)}`,
-      "Sedang membuat kategori"
-    );
-    try {
-      await addCategory(name);
-      toast.dismiss(toastLoading);
-      showSuccessToast(
-        "Berhasil",
-        `Kategori ${capitalizeFirstLetter(name)} berhasil dibuat`
-      );
-    } catch (error) {
-      toast.dismiss(toastLoading);
-      showErrorToast("Gagal", "Sepertinya ada gangguan");
-
-      throw error;
-    }
-  }, []);
-
-  const onAddSubCategory = useCallback(
-    async (categoryId: string, name: string) => {
-      const toastLoading = showLoadingToast(
-        `Kategory: ${capitalizeFirstLetter(name)}`,
-        "Sedang membuat sub kategori"
-      );
-      try {
-        await addSubCategory(categoryId, name);
-        toast.dismiss(toastLoading);
-        showSuccessToast(
-          "Berhasil",
-          `Sub kategori ${capitalizeFirstLetter(name)} berhasil dibuat`
-        );
-      } catch (error) {
-        toast.dismiss(toastLoading);
-        showErrorToast("Gagal", "Sepertinya ada gangguan");
-
-        throw error;
-      }
-    },
-    []
-  );
-
   const fetchCategories = useCallback(async (name?: string) => {
     try {
       const res = await getCategories(name);
@@ -95,34 +49,73 @@ export function NewProductForm() {
 
   const fetchSubCategories = useCallback(
     async (categoryId: string, search?: string) => {
-      const subCategories = await getSubCategories(categoryId || "", search);
-
-      setSubCategories(subCategories.subCategory);
+      try {
+        const res = await getSubCategories(categoryId, search);
+        setSubCategories(res.subCategory);
+      } catch {
+        showErrorToast("Gagal", "Gagal mengambil sub kategori");
+      }
     },
     []
   );
 
-  useEffect(() => {
-    if (!selectedCategory) return;
+  const onAddCategory = useCallback(
+    async (name: string) => {
+      const toastLoading = showLoadingToast(
+        `Kategori: ${capitalizeFirstLetter(name)}`,
+        "Sedang membuat kategori"
+      );
 
-    let cancelled = false;
+      try {
+        await addCategory(name);
+        await fetchCategories();
 
-    (async () => {
-      const res = await getSubCategories(selectedCategory.id);
-      if (!cancelled) {
-        setSubCategories(res.subCategory);
+        toast.dismiss(toastLoading);
+        showSuccessToast("Berhasil", "Kategori berhasil dibuat");
+      } catch {
+        toast.dismiss(toastLoading);
+        showErrorToast("Gagal", "Sepertinya ada gangguan");
       }
-    })();
+    },
+    [fetchCategories]
+  );
 
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCategory?.id]);
+  const onAddSubCategory = useCallback(
+    async (categoryId: string, name: string) => {
+      const toastLoading = showLoadingToast(
+        `Sub Kategori: ${capitalizeFirstLetter(name)}`,
+        "Sedang membuat sub kategori"
+      );
+
+      try {
+        await addSubCategory(categoryId, name);
+        await fetchSubCategories(categoryId);
+
+        toast.dismiss(toastLoading);
+        showSuccessToast("Berhasil", "Sub kategori berhasil dibuat");
+      } catch {
+        toast.dismiss(toastLoading);
+        showErrorToast("Gagal", "Sepertinya ada gangguan");
+      }
+    },
+    [fetchSubCategories]
+  );
+
+  const handleCategoryChange = (val: CategoryType | null) => {
+    setSelectedCategory(val);
+    setSubCategories([]);
+    setValue("categoryId", val?.id ?? "");
+    setValue("subCategory", "");
+
+    if (val) {
+      fetchSubCategories(val.id);
+    }
+  };
 
   // Fetch categories (mock or from server)
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   useEffect(() => {
     return () => {
@@ -218,16 +211,7 @@ export function NewProductForm() {
             getValue={(c) => c.id}
             label="Pilih Kategori"
             onActionEmpty={(val) => onAddCategory(val)}
-            onChange={(val) => {
-              setSelectedCategory(val);
-              setSelectedSubCategory(null);
-              setSubCategories([]);
-              setValue("categoryId", val?.id || "");
-              setValue("subCategory", "");
-            }}
-            onSearchEmpty={(isEmpty, search) => {
-              if (isEmpty) fetchCategories(search);
-            }}
+            onChange={handleCategoryChange}
           />
 
           {errors.categoryId && (
@@ -254,11 +238,7 @@ export function NewProductForm() {
                 onAddSubCategory(selectedCategory?.id, val)
               }
               onChange={(val) => {
-                setSelectedSubCategory(val);
                 setValue("subCategory", val?.id || "");
-              }}
-              onSearchEmpty={(isEmpty, search) => {
-                if (isEmpty) fetchSubCategories(selectedCategory?.id, search);
               }}
             />
 

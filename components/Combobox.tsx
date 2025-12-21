@@ -43,44 +43,25 @@ export function Combobox<T>({
   onChange,
   label,
   onActionEmpty,
-  onSearchEmpty,
 }: ComboboxProps<T>) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState<string>(defaultValue);
+  const [value, setValue] = React.useState(defaultValue);
   const [search, setSearch] = React.useState("");
 
-  /** Filter options based on search */
-  const filteredOptions = React.useMemo(() => {
-    return options.filter((opt) =>
-      getLabel(opt).toLowerCase().includes(search.toLowerCase())
-    );
-  }, [options, search, getLabel]);
-
-  const isSearchEmpty = search.length > 0 && filteredOptions.length === 0;
-
-  /** Selected item */
   const selectedItem = React.useMemo(
     () => options.find((opt) => getValue(opt) === value),
     [options, value, getValue]
   );
 
-  const selectedLabel = selectedItem
-    ? getLabel(selectedItem)
-    : label || "Select option...";
-
   const handleSelect = (selectedValue: string) => {
-    const newValue = selectedValue === value ? "" : selectedValue;
-    setValue(newValue);
+    setValue(selectedValue);
 
-    const selected = options.find((opt) => getValue(opt) === newValue);
-
+    const selected = options.find((opt) => getValue(opt) === selectedValue);
     onChange?.(selected ?? null);
-    setOpen(false);
-  };
 
-  React.useEffect(() => {
-    onSearchEmpty?.(isSearchEmpty, search);
-  }, [isSearchEmpty, search, onSearchEmpty]);
+    setOpen(false);
+    setSearch(""); // UX improvement
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -88,57 +69,55 @@ export function Combobox<T>({
         <Button
           variant="outline"
           role="combobox"
-          aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {selectedLabel}
-          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          {selectedItem ? getLabel(selectedItem) : label ?? "Select option"}
+          <ChevronsUpDownIcon className="ml-2 h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
 
       <PopoverContent className="w-[200px] p-0">
         <Command>
           <CommandInput
-            value={search}
-            onValueChange={setSearch}
+            // value={search}
+            // onValueChange={handleSearchChange}
             placeholder="Search..."
           />
 
           <CommandList>
-            <CommandEmpty className="p-2">
-              <div className="flex flex-col text-xs space-y-1">
-                No results found.
+            <CommandEmpty className="p-2 text-xs">
+              <div className="space-y-2">
+                <div>No results found.</div>
                 <Separator />
-                <span className="flex justify-between items-center text-lg">
-                  {search}
-                  <Button
-                    onClick={() => onActionEmpty?.(search)}
-                    className="cursor-pointer shadow-md"
-                  >
-                    <Plus />
-                  </Button>
-                </span>
+                <Button
+                  size="sm"
+                  className="w-full flex gap-2"
+                  onClick={() => onActionEmpty?.(search)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add “{search}”
+                </Button>
               </div>
             </CommandEmpty>
 
             <CommandGroup>
-              {filteredOptions.map((opt) => {
-                const optValue = getValue(opt);
-                const optLabel = getLabel(opt);
+              {options.map((opt) => {
+                const v = getValue(opt);
+                const l = getLabel(opt);
 
                 return (
                   <CommandItem
-                    key={optValue}
-                    value={optValue}
-                    onSelect={handleSelect}
+                    key={v}
+                    value={l.toLocaleLowerCase()}
+                    onSelect={() => handleSelect(v)}
                   >
                     <CheckIcon
                       className={cn(
                         "mr-2 h-4 w-4",
-                        value === optValue ? "opacity-100" : "opacity-0"
+                        value === v ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    {optLabel}
+                    {getLabel(opt)}
                   </CommandItem>
                 );
               })}

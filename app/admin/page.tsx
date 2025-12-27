@@ -103,7 +103,13 @@ function RevenueSection() {
 
       <AnimatedCard>
         <div className="w-full ">
-          <ResponsiveContainer width="100%" aspect={3}>
+          <ResponsiveContainer
+            width="100%"
+            height={300}
+            minWidth={1}
+            minHeight={1}
+            aspect={3}
+          >
             <LineChart data={dashboardData.revenueChart}>
               <XAxis dataKey="month" />
               <YAxis />

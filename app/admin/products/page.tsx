@@ -1,302 +1,212 @@
 "use client";
 
+import useDebouncedValue from "@/hooks/useDebouncedValue";
+import {
+  PAGE_SIZE_PRODUCT_LIST_ADMIN,
+  useProductList,
+} from "@/hooks/useProduct";
+import { updateQuery } from "@/lib/utils";
+import { FilterState } from "@/types";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Search, ChevronDown } from "lucide-react";
-import Image from "next/image";
 
-const SORT_OPTIONS = [
-  { key: "name", label: "Nama" },
-  { key: "price", label: "Harga" },
-  { key: "stock", label: "Stok" },
-  { key: "created_at", label: "Tanggal dibuat" },
-  { key: "rate", label: "Rating" },
-  { key: "status", label: "Status" },
-];
+export default function AdminProductsPage() {
+  const params = useSearchParams();
+  const pageParam = params.get("page");
 
-const MOCK_PRODUCTS = [
-  {
-    id: "P001",
-    name: "Indomie Goreng",
-    price: 3500,
-    seller: "Warimas Official",
-    img: "/noimage.jpg",
-    stock: 120,
-    status: "active",
-  },
-  {
-    id: "P002",
-    name: "Beras Ramos 5kg",
-    price: 65000,
-    seller: "Toko Sejahtera",
-    img: "/noimage.jpg",
-    stock: 20,
-    status: "hidden",
-  },
-  {
-    id: "P003",
-    name: "Minyak Goreng 1L",
-    price: 15000,
-    seller: "Warung Barokah",
-    img: "/noimage.jpg",
-    stock: 0,
-    status: "blocked",
-  },
-  {
-    id: "P004",
-    name: "Minyak Goreng 1L",
-    price: 15000,
-    seller: "Warung Barokah",
-    img: "/noimage.jpg",
-    stock: 0,
-    status: "blocked",
-  },
-  {
-    id: "P005",
-    name: "Minyak Goreng 1L",
-    price: 15000,
-    seller: "Warung Barokah",
-    img: "/noimage.jpg",
-    stock: 0,
-    status: "blocked",
-  },
-  {
-    id: "P006",
-    name: "Minyak Goreng 1L",
-    price: 15000,
-    seller: "Warung Barokah",
-    img: "/noimage.jpg",
-    stock: 0,
-    status: "blocked",
-  },
-  {
-    id: "P007",
-    name: "Minyak Goreng 1L",
-    price: 15000,
-    seller: "Warung Barokah",
-    img: "/noimage.jpg",
-    stock: 0,
-    status: "blocked",
-  },
-];
+  const router = useRouter();
 
-export default function AdminProductList() {
-  const [search, setSearch] = useState("");
-  const [searchFilter, setSearchFilter] = useState("all"); // all | product | seller
+  const [filters, setFilters] = useState<FilterState>({
+    categoryId: "",
+    search: "",
+    status: "",
+    sellerName: "",
+  });
 
-  const [sortBy, setSortBy] = useState("created_at");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortBy, setSortBy] = useState<"name" | "createdAt">("createdAt");
+  const [page, setPage] = useState(Number(pageParam));
 
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const debouncedFilters = useDebouncedValue(filters, 500);
 
-  const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState<any[]>([]);
+  const { data, isLoading, isFetching, error } = useProductList({
+    filters: debouncedFilters,
+    sortBy,
+    page,
+  });
+
+  const products = data?.productList.items ?? [];
+  const totalItem = data?.productList.totalCount ?? 1;
+  const totalPage = Math.ceil(totalItem / PAGE_SIZE_PRODUCT_LIST_ADMIN);
+  const hasNext = data?.productList.hasNext;
+
+  const movePage = (nextPage: number) => {
+    setPage(nextPage);
+    updateQuery(router, params, { page: nextPage });
+  };
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setProducts(MOCK_PRODUCTS);
-      setLoading(false);
-    }, 800);
-  }, []);
-
-  const filtered = products.filter((p) => {
-    const term = search.toLowerCase();
-
-    if (searchFilter === "product") {
-      return p.name.toLowerCase().includes(term);
-    } else if (searchFilter === "seller") {
-      return p.seller.toLowerCase().includes(term);
+    if (page !== 1) {
+      setPage(1);
+      updateQuery(router, params, { page: 1 });
     }
-    return (
-      p.name.toLowerCase().includes(term) ||
-      p.seller.toLowerCase().includes(term)
-    );
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
-    const direction = sortOrder === "asc" ? 1 : -1;
-
-    if (a[sortBy] < b[sortBy]) return -1 * direction;
-    if (a[sortBy] > b[sortBy]) return 1 * direction;
-    return 0;
-  });
-
-  const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
-
+  }, [debouncedFilters, sortBy]);
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      <h1 className="text-2xl font-semibold mb-6">Product List</h1>
-
-      {/* Search + Filter */}
-      <div className="bg-white p-4 rounded-xl border shadow-sm mb-4">
-        <div className="flex flex-col md:flex-row gap-3 md:items-center">
-          {/* Search Bar */}
-          <div className="flex items-center gap-2 w-full bg-gray-50 px-4 py-2 rounded-xl border">
-            <Search size={18} className="text-gray-400" />
-            <input
-              type="text"
-              placeholder="Cari produk atau penjual..."
-              className="flex-1 outline-none bg-transparent"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          {/* Search Filter */}
-          <select
-            value={searchFilter}
-            onChange={(e) => setSearchFilter(e.target.value)}
-            className="px-3 py-2 border rounded-xl bg-white"
-          >
-            <option value="all">Semua</option>
-            <option value="product">Produk</option>
-            <option value="seller">Penjual</option>
-          </select>
-
-          {/* Sort By */}
-          <div className="flex gap-2 items-center">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border rounded-xl bg-white"
-            >
-              {SORT_OPTIONS.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-
-            <button
-              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="px-3 py-2 border rounded-xl bg-white text-sm"
-            >
-              {sortOrder === "asc" ? "ASC ↑" : "DESC ↓"}
-            </button>
-          </div>
-        </div>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">Products</h1>
       </div>
 
-      {/* Product List */}
-      <div className="bg-white border rounded-xl shadow-sm">
-        {loading ? (
-          Array.from({ length: 5 }).map((_, i) => <ProductSkeleton key={i} />)
-        ) : paginated.length === 0 ? (
-          <p className="text-center text-gray-500 py-6">Tidak ada produk.</p>
-        ) : (
-          paginated.map((p) => <ProductRow key={p.id} product={p} />)
-        )}
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow p-4 grid grid-cols-1 md:grid-cols-6 gap-4">
+        <input
+          placeholder="Search product..."
+          className="input"
+          value={filters.search}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, search: e.target.value }))
+          }
+        />
+
+        <input
+          placeholder="Category"
+          className="input"
+          value={filters.categoryId}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, categoryId: e.target.value }))
+          }
+        />
+
+        <input
+          placeholder="Seller"
+          className="input"
+          value={filters.sellerName}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, sellerName: e.target.value }))
+          }
+        />
+
+        <select
+          className="input"
+          value={filters.status}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, status: e.target.value }))
+          }
+        >
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="disabled">Disabled</option>
+        </select>
+
+        <select
+          className="input"
+          onChange={(e) =>
+            setFilters((prev) => ({
+              ...prev,
+              inStock:
+                e.target.value === "" ? undefined : e.target.value === "true",
+            }))
+          }
+        >
+          <option value="">Stock</option>
+          <option value="true">In Stock</option>
+          <option value="false">Out of Stock</option>
+        </select>
+
+        <select
+          className="input"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as any)}
+        >
+          <option value="createdAt">Newest</option>
+          <option value="name">Name</option>
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-600">
+            <tr>
+              <th className="px-4 py-3 text-left">Product</th>
+              <th className="px-4 py-3">Category</th>
+              <th className="px-4 py-3">Seller</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan={5} className="text-center py-6">
+                  Loading...
+                </td>
+              </tr>
+            ) : products?.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-6">
+                  No products found
+                </td>
+              </tr>
+            ) : (
+              <>
+                {isFetching && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-center py-2 text-sm text-gray-400"
+                    >
+                      Updating results…
+                    </td>
+                  </tr>
+                )}
+                {products.map((product) => (
+                  <tr key={product.id} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium">{product.name}</td>
+                    <td className="px-4 py-3">{product.categoryName}</td>
+                    <td className="px-4 py-3">{product.sellerName}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          product.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-200 text-gray-600"
+                        }`}
+                      >
+                        {product.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {new Date(product.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center gap-3 mt-6">
+      <div className="flex justify-end gap-2">
         <button
-          disabled={page === 1}
-          onClick={() => setPage((p) => p - 1)}
-          className="px-4 py-2 rounded-xl border bg-white disabled:opacity-40"
+          disabled={page === 1 || isFetching}
+          onClick={() => movePage(page - 1)}
+          className="px-3 py-1 border rounded disabled:opacity-40"
         >
           Prev
         </button>
-        <span className="px-4 py-2 text-gray-600">
-          {page} / {totalPages}
+        <span className="px-3 py-1">
+          {page} / {totalPage}
         </span>
         <button
-          disabled={page === totalPages}
-          onClick={() => setPage((p) => p + 1)}
-          className="px-4 py-2 rounded-xl border bg-white disabled:opacity-40"
+          disabled={!hasNext || isFetching}
+          onClick={() => movePage(page + 1)}
+          className="px-3 py-1 border rounded disabled:opacity-40"
         >
           Next
         </button>
       </div>
     </div>
-  );
-}
-
-// ---------------------------------------------------------------
-// Product Row Component (clean modern design)
-// ---------------------------------------------------------------
-function ProductRow({ product }: any) {
-  return (
-    <div className="flex items-center gap-4 p-4 border-b last:border-none hover:bg-gray-50 transition">
-      {/* Image */}
-      <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-        <Image
-          src={product.img}
-          width={80}
-          height={80}
-          alt={product.name}
-          className="w-full h-full object-cover"
-        />
-      </div>
-
-      <div className="flex-1">
-        <p className="font-medium">{product.name}</p>
-        <p className="text-gray-500 text-sm">{product.seller}</p>
-      </div>
-
-      {/* Price */}
-      <p className="w-28 text-sm font-semibold">
-        Rp {product.price.toLocaleString("id-ID")}
-      </p>
-
-      {/* Stock */}
-      <p className="w-20 text-sm text-gray-700">{product.stock} pcs</p>
-
-      {/* Status */}
-      <span
-        className={`px-3 py-1 text-sm rounded-xl border ${
-          product.status === "active"
-            ? "bg-green-50 text-green-700 border-green-300"
-            : product.status === "hidden"
-            ? "bg-yellow-50 text-yellow-700 border-yellow-300"
-            : "bg-red-50 text-red-700 border-red-300"
-        }`}
-      >
-        {product.status}
-      </span>
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <ActionBtn label="Active" />
-        <ActionBtn label="Hide" />
-        <ActionBtn label="Block" />
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------
-// Skeleton Loader
-// ---------------------------------------------------------------
-function ProductSkeleton() {
-  return (
-    <div className="flex items-center gap-4 p-4 border-b animate-pulse">
-      <div className="w-16 h-16 bg-gray-200 rounded-lg" />
-
-      <div className="flex-1 space-y-2">
-        <div className="h-4 bg-gray-200 rounded w-40" />
-        <div className="h-3 bg-gray-200 rounded w-28" />
-      </div>
-
-      <div className="w-28 h-4 bg-gray-200 rounded" />
-      <div className="w-20 h-4 bg-gray-200 rounded" />
-      <div className="w-16 h-6 bg-gray-200 rounded-xl" />
-      <div className="w-32 flex gap-2">
-        <div className="h-8 w-16 bg-gray-200 rounded-xl" />
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------
-// Reusable Action Button
-// ---------------------------------------------------------------
-function ActionBtn({ label }: { label: string }) {
-  return (
-    <button className="px-3 py-1.5 text-sm rounded-xl border bg-white hover:bg-gray-100">
-      {label}
-    </button>
   );
 }

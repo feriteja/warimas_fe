@@ -41,3 +41,27 @@ export const ADD_PRODUCT_VARIANT = `
   }
 }
 `;
+
+export const ADMIN_GET_PRODUCT_LIST = `query($filter: ProductFilterInput, $sort: ProductSortInput, $limit: Int, $page: Int) {
+  productList(filter: $filter, sort: $sort, limit: $limit, page: $page) {
+    page
+    limit
+    totalCount
+    hasNext
+
+   items { id 
+    name 
+    sellerId
+    sellerName
+    status
+    variants { id name price} 
+    description 
+    subcategoryID 
+    subcategoryName 
+    categoryName 
+    categoryID
+    createdAt
+    updatedAt}
+    
+  }
+}`;

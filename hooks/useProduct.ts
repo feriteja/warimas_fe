@@ -1,0 +1,34 @@
+import { mapProductFiltersToAPI, mapProductSortToAPI } from "@/lib/utils";
+import { getProductList } from "@/services/product.service";
+import { FilterState } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+
+export const PAGE_SIZE_PRODUCT_LIST_ADMIN = 20;
+
+export const useProductList = ({
+  filters,
+  sortBy,
+  page,
+}: {
+  filters: FilterState;
+  sortBy: "name" | "createdAt";
+  page: number;
+}) => {
+  return useQuery({
+    queryKey: ["Products", filters, sortBy, page],
+    queryFn: async () => {
+      const filter = mapProductFiltersToAPI(filters);
+      const sort = mapProductSortToAPI(sortBy);
+
+      return getProductList({
+        filter,
+        sort,
+        limit: PAGE_SIZE_PRODUCT_LIST_ADMIN,
+        page: page - 1,
+      });
+    },
+
+    placeholderData: (previousData) => previousData, // v5 equivalent
+    staleTime: 30_000,
+  });
+};

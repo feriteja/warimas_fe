@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getAuthPayload, isAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminNavbar from "./components/AdminNavbar";
+import { Providers } from "../providers";
 
 export default async function AdminLayout({
   children,
@@ -13,8 +14,12 @@ export default async function AdminLayout({
   const user = await getAuthPayload(token);
 
   if (!isAdmin(user)) {
-    redirect("/403");
+    redirect("/not-found");
   }
 
-  return <AdminNavbar>{children}</AdminNavbar>;
+  return (
+    <Providers>
+      <AdminNavbar>{children}</AdminNavbar>
+    </Providers>
+  );
 }

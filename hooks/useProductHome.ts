@@ -16,9 +16,7 @@ export const useProductHomeList = ({
     queryFn: async () => {
       const sort = mapProductSortToAPI(sortBy);
 
-      return getProductHomeList({
-        sort,
-      });
+      return getProductHomeList();
     },
 
     placeholderData: (previousData) => previousData,

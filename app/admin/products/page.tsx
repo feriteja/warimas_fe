@@ -1,10 +1,7 @@
 "use client";
 
 import useDebouncedValue from "@/hooks/useDebouncedValue";
-import {
-  PAGE_SIZE_PRODUCT_LIST_ADMIN,
-  useProductList,
-} from "@/hooks/useProduct";
+import { PAGE_SIZE_PRODUCT_LIST, useProductList } from "@/hooks/useProduct";
 import { updateQuery } from "@/lib/utils";
 import { FilterState } from "@/types";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -36,7 +33,7 @@ export default function AdminProductsPage() {
 
   const products = data?.productList.items ?? [];
   const totalItem = data?.productList.totalCount ?? 1;
-  const totalPage = Math.ceil(totalItem / PAGE_SIZE_PRODUCT_LIST_ADMIN);
+  const totalPage = Math.ceil(totalItem / PAGE_SIZE_PRODUCT_LIST);
   const hasNext = data?.productList.hasNext;
 
   const movePage = (nextPage: number) => {
@@ -129,10 +126,10 @@ export default function AdminProductsPage() {
           <thead className="bg-gray-50 text-gray-600">
             <tr>
               <th className="px-4 py-3 text-left">Product</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3">Seller</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Created</th>
+              <th className="px-4 py-3 text-left">Category</th>
+              <th className="px-4 py-3 text-left">Seller</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Created</th>
             </tr>
           </thead>
           <tbody>

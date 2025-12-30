@@ -35,7 +35,7 @@ export function updateQuery(
 export const mapProductFiltersToAPI = (
   filters: FilterState
 ): ProductFilterInput => ({
-  category: filters.category || undefined,
+  categoryId: filters.categoryId || undefined,
   search: filters.search || undefined,
   status: filters.status || undefined,
   sellerName: filters.sellerName || undefined,

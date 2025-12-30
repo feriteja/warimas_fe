@@ -3,11 +3,13 @@ import {
   ADD_PRODUCT,
   ADD_PRODUCT_VARIANT,
   ADMIN_GET_PRODUCT_LIST,
+  GET_PRODUCT_HOME_LIST,
 } from "@/lib/graphql/mutations";
 import {
   CreateProductInput,
   CreateProductVariantInput,
   ProductFilterInput,
+  ProductsHomeListType,
   ProductSortInput,
   ProductType,
   VariantType,
@@ -36,6 +38,20 @@ export async function getProductList({
   return graphqlFetch<{
     productList: { items: ProductType[]; totalCount: number; hasNext: boolean };
   }>(ADMIN_GET_PRODUCT_LIST, {
+    filter,
+    sort,
+    limit,
+    page,
+  });
+}
+
+export async function getProductHomeList({
+  filter,
+  sort,
+  limit = 20,
+  page = 0,
+}: getProductListProps) {
+  return graphqlFetch<ProductsHomeListType>(GET_PRODUCT_HOME_LIST, {
     filter,
     sort,
     limit,

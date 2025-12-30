@@ -34,4 +34,4 @@ function ProductCustomCard() {
   );
 }
 
-export default ProductCustomCard;
+// export default ProductCustomCard;

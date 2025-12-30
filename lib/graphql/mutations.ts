@@ -63,5 +63,13 @@ export const ADMIN_GET_PRODUCT_LIST = `query($filter: ProductFilterInput, $sort:
     createdAt
     updatedAt}
     
-  }
-}`;
+    }
+  }`;
+
+export const GET_PRODUCT_HOME_LIST = `query{
+ productsHome{
+  CategoryName Products{
+    id name variants{id name price stock imageUrl} description categoryName subcategoryName
+      }
+    }
+  }`;

@@ -3,7 +3,7 @@ import { getProductList } from "@/services/product.service";
 import { FilterState } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
-export const PAGE_SIZE_PRODUCT_LIST_ADMIN = 20;
+export const PAGE_SIZE_PRODUCT_LIST = 20;
 
 export const useProductList = ({
   filters,
@@ -23,8 +23,8 @@ export const useProductList = ({
       return getProductList({
         filter,
         sort,
-        limit: PAGE_SIZE_PRODUCT_LIST_ADMIN,
-        page: page - 1,
+        limit: PAGE_SIZE_PRODUCT_LIST,
+        page: page,
       });
     },
 

@@ -2,7 +2,6 @@ import CategoriesSection from "@/components/CategoriesSection";
 import HeroWithCarousel from "@/components/HeroWithCarousel";
 import HomeProduct from "@/components/HomeProduct";
 import PackageRecomandation from "@/components/PackageRecomandation";
-import ProductCard from "@/components/ProductCard";
 
 export default function HomePage() {
   return (

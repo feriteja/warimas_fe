@@ -37,3 +37,12 @@ export interface FilterState {
   status: string;
   sellerName: string;
 }
+
+export interface ProductsHomeListType {
+  productsHome: ProductsHome[];
+}
+
+export interface ProductsHome {
+  CategoryName: string;
+  Products: ProductType[];
+}

@@ -13,6 +13,7 @@ export type GraphQLResponse<T> = {
 export type GraphqlFetchOptions<TVariables> = {
   variables?: TVariables;
   headers?: HeadersInit;
+  cookieHeader?: string;
   /**
    * Use "no-store" for mutations or user-specific data
    * Use "force-cache" for public queries
@@ -43,6 +44,7 @@ export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
     headers,
     cache = "no-store",
     timeoutMs = DEFAULT_TIMEOUT,
+    cookieHeader,
   } = options;
 
   const controller = new AbortController();
@@ -58,6 +60,7 @@ export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
       cache,
       headers: {
         "Content-Type": "application/json",
+        ...(cookieHeader && { Cookie: cookieHeader }),
         ...headers,
       },
       body: JSON.stringify({

@@ -7,6 +7,7 @@ export type VariantType = {
   quantityType: QuantityType;
   stock: number;
   price: number;
+  imageUrl?: string;
 };
 
 export type CreateProductVariantInput = {

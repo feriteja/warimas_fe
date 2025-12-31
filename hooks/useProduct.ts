@@ -32,3 +32,15 @@ export const useProductList = ({
     staleTime: 30_000,
   });
 };
+
+// export const useProductDetail = (id: string) => {
+//   return useQuery({
+//     queryKey: ["ProductDetauk", id],
+//     queryFn: async () => {
+//       return getProductDetail(id);
+//     },
+
+//     placeholderData: (previousData) => previousData, // v5 equivalent
+//     staleTime: 1000 * 60 * 60, // 1 hour
+//   });
+// };

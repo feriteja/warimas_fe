@@ -1,10 +1,10 @@
 import { graphqlFetch } from "@/lib/graphql/fetcher";
+import { ADD_PRODUCT, ADD_PRODUCT_VARIANT } from "@/lib/graphql/mutations";
 import {
-  ADD_PRODUCT,
-  ADD_PRODUCT_VARIANT,
   ADMIN_GET_PRODUCT_LIST,
+  GET_PRODUCT_DETAIL,
   GET_PRODUCT_HOME_LIST,
-} from "@/lib/graphql/mutations";
+} from "@/lib/graphql/queries";
 import {
   CreateProductInput,
   CreateProductVariantInput,
@@ -104,5 +104,19 @@ export async function getProductList(
 export async function getProductHomeList(): Promise<ProductsHomeListType> {
   return graphqlFetch<ProductsHomeListType>(GET_PRODUCT_HOME_LIST, {
     cache: "force-cache",
+  });
+}
+
+export async function getProductDetail({
+  id,
+  cookieHeader,
+}: {
+  id: string;
+  cookieHeader?: string;
+}): Promise<{ productDetail: ProductType }> {
+  return graphqlFetch<{ productDetail: ProductType }>(GET_PRODUCT_DETAIL, {
+    cache: "force-cache",
+    variables: { productID: id },
+    cookieHeader: cookieHeader,
   });
 }

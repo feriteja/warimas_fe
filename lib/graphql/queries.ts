@@ -59,7 +59,7 @@ export const GET_PRODUCT_DETAIL = `
     subcategoryID
     imageUrl
     sellerName
-    variants  {id name description price imageUrl}   
+    variants  {id name description price imageUrl stock}   
   }
 }
 `;

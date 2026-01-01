@@ -1,8 +1,8 @@
 import type { QuantityType } from "./quantity";
 
 export type VariantType = {
-  id?: string;
-  productId?: string;
+  id: string;
+  productId: string;
   name: string;
   quantityType: QuantityType;
   stock: number;

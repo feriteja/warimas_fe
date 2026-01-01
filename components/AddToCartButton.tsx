@@ -1,27 +1,26 @@
 "use client";
 
 import { useCart } from "@/lib/store/cart";
-import { ProductType, VariantInputType } from "@/types/global";
 
 export function AddToCartButton({
   variant,
-  product,
+  quantity,
 }: {
-  variant: Pick<VariantInputType, "id" | "name" | "price" | "quantityType">;
-  product: Pick<ProductType, "id" | "name">;
+  variant: string;
+  quantity: number;
 }) {
-  const { addItem } = useCart();
+  // const { addItem } = useCart();
 
   const handleClick = () => {
-    addItem({
-      variantId: variant.id,
-      productId: product.id,
-      productName: product.name,
-      variantName: variant.name,
-      price: variant.price,
-      quantity: 1,
-      quantityType: variant.quantityType,
-    });
+    // addItem({
+    //   variantId: variant.id,
+    //   productId: product.id,
+    //   productName: product.name,
+    //   variantName: variant.name,
+    //   price: variant.price,
+    //   quantity: 1,
+    //   quantityType: variant.quantityType,
+    // });
   };
 
   return (

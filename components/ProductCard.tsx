@@ -2,6 +2,7 @@ import { ProductType } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
 import productPlaceHolder from "../public/images/placeholder-product.png";
+import { SafeImage } from "./SafeImage";
 
 type ProductCardProps = {
   product: ProductType;
@@ -14,10 +15,10 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link
-      href={`/product/${product.slug}`}
+      href={`/product/${product.id}`}
       className="bg-white rounded-xl shadow-sm hover:shadow-md transition p-3 space-y-2"
     >
-      <Image
+      <SafeImage
         src={productPlaceHolder}
         alt={product.name}
         width={300}

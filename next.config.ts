@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
         hostname: "wgififswqofdevtqufad.supabase.co",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.warimas.com",
+        pathname: "/**",
+      },
     ],
   },
 };

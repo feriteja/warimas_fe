@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/lib/store/cart";
-import { ProductType } from "@/types/global";
+import { ProductType } from "@/types";
 
 type CustomPriceInputProps = Pick<ProductType, "id" | "name">;
 

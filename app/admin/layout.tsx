@@ -1,9 +1,8 @@
 // admin/layout.tsx (SERVER COMPONENT)
-import { cookies } from "next/headers";
 import { getAuthPayload, isAdmin } from "@/lib/auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import AdminNavbar from "./components/AdminNavbar";
-import { Providers } from "../providers";
 
 export default async function AdminLayout({
   children,
@@ -17,9 +16,5 @@ export default async function AdminLayout({
     redirect("/not-found");
   }
 
-  return (
-    <Providers>
-      <AdminNavbar>{children}</AdminNavbar>
-    </Providers>
-  );
+  return <AdminNavbar>{children}</AdminNavbar>;
 }

@@ -63,3 +63,16 @@ export const GET_PRODUCT_DETAIL = `
   }
 }
 `;
+
+export const GET_CART_LIST = `
+  query MyCart($limit:Int, $page:Int){
+  myCart(
+    limit:$limit,page:$page) {
+    id 
+    product{id status name sellerId categoryID 
+      variant{id name price  stock}
+    } 
+    createdAt quantity
+  }
+}
+`;

@@ -18,6 +18,23 @@ export interface ProductType {
 
   variants: VariantType[];
 }
+export interface ProductCartType {
+  id: string;
+  name: string;
+  sellerId: string;
+  sellerName: string;
+  categoryID: string;
+  categoryName: string;
+  subcategoryID: string;
+  subcategoryName: string;
+  slug: string;
+  variant: VariantType;
+  imageUrl: string;
+  description: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export type CreateProductInput = {
   name: string;

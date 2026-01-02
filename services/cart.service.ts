@@ -4,7 +4,11 @@ import {
   ADD_SUB_CATEGORY,
   ADD_TO_CART,
 } from "@/lib/graphql/mutations";
-import { GET_CATEGORY, GET_SUB_CATEGORY } from "@/lib/graphql/queries";
+import {
+  GET_CART_LIST,
+  GET_CATEGORY,
+  GET_SUB_CATEGORY,
+} from "@/lib/graphql/queries";
 import { CategoryType } from "@/types";
 import { AddToCartResponseType, CartItemType } from "@/types/cart";
 
@@ -53,7 +57,7 @@ export async function getCartList({
   const res = await graphqlFetch<
     getCartListResponse,
     { page?: number; limit: number }
-  >(GET_CATEGORY, {
+  >(GET_CART_LIST, {
     variables: { page, limit },
     cache: "force-cache",
   });

@@ -1,17 +1,14 @@
-import { mapProductFiltersToAPI, mapProductSortToAPI } from "@/lib/utils";
 import { getCartList } from "@/services/cart.service";
-import { getProductList } from "@/services/product.service";
-import { FilterState } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 export const PAGE_SIZE_PRODUCT_LIST = 20;
 
 export const useCartList = ({
-  limit,
   page,
+  limit,
 }: {
-  limit: number;
   page: number;
+  limit?: number;
 }) => {
   return useQuery({
     queryKey: ["carts", page, limit],

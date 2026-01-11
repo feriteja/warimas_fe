@@ -1,4 +1,4 @@
-import { ProductCartType, ProductType } from "./product";
+import { ProductCartType } from "./product";
 
 export type CartItemType = {
   id: string;

@@ -76,3 +76,43 @@ export const GET_CART_LIST = `
   }
 }
 `;
+
+export const GET_CHECKOUT_SESSION_DATA = `
+query GetSessionData ($externalId: String!) {
+  checkoutSession (externalId: $externalId) {
+    id externalId status expiresAt createdAt addressId shippingFee
+    items { id variantName productName quantity quantityType price}
+  }
+}`;
+
+export const GET_ADDRESSES = `
+query GetAddresses {
+  addresses{
+    id
+    name
+    phone
+    addressLine1
+    addressLine2
+    city
+    province
+    postalCode
+    country
+    isDefault
+  }
+}`;
+
+export const GET_ADDRESS = `
+query GetAddress($AddressID: ID!) {
+  address(addressId:$AddressID){
+    id 
+    name
+    phone
+    addressLine1
+    addressLine2
+    city
+    province
+    postalCode
+    country
+    isDefault
+  }
+}`;

@@ -52,6 +52,11 @@ export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
 
   let res: Response;
 
+  const bodyFetch = JSON.stringify({
+    query,
+    variables,
+  });
+
   try {
     res = await fetch(getGraphqlUrl(), {
       method: "POST",
@@ -63,10 +68,7 @@ export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
         ...(cookieHeader && { Cookie: cookieHeader }),
         ...headers,
       },
-      body: JSON.stringify({
-        query,
-        variables,
-      }),
+      body: bodyFetch,
     });
   } catch (error) {
     if ((error as Error).name === "AbortError") {

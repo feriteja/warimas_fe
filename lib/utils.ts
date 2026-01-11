@@ -51,3 +51,10 @@ export const mapProductSortToAPI = (
     sortBy === "name" ? ProductSortField.NAME : ProductSortField.CREATED_AT,
   direction: "DESC",
 });
+
+export const formatIDR = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(value);

@@ -1,4 +1,9 @@
-export function MobileCheckout({ total }: { total: number }) {
+type Props = {
+  total: number;
+  onCheckout: () => void;
+};
+
+export function MobileCheckout({ total, onCheckout }: Props) {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex justify-between items-center">
       <div>
@@ -9,6 +14,7 @@ export function MobileCheckout({ total }: { total: number }) {
       </div>
       <button
         disabled={total === 0}
+        onClick={onCheckout}
         className="px-6 py-3 rounded-lg text-white font-semibold bg-green-600 disabled:bg-gray-300"
       >
         Checkout

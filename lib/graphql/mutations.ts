@@ -56,3 +56,25 @@ export const ADD_PRODUCT_VARIANT = `
   }
 }
 `;
+
+export const CREATE_SESSION_CHECKOUT = `
+mutation CreateCheckoutSession($input: CreateCheckoutSessionInput!){
+  createCheckoutSession(input:$input){
+    externalId status expiresAt
+  }
+}`;
+
+export const UPDATE_SESSION_ADDRESS = `
+mutation UpdateSessionAddress($input: UpdateSessionAddressInput!){
+  updateSessionAddress(input:$input){
+    success
+  }
+}`;
+
+export const CONFIRM_CHECKOUT_SESSION = `mutation ConfirmCheckoutSession($input: ConfirmCheckoutSessionInput!){
+  confirmCheckoutSession(input:$input){
+    success
+    message
+    session {id  status expiresAt subtotal}
+  }
+}`;

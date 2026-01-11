@@ -5,34 +5,72 @@ import { useCartList } from "@/hooks/useCart";
 import { CartItemType } from "@/types/cart";
 import { Heart, Square, SquareCheck } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createCheckoutSession } from "@/services/order.service";
 import { CartSummary } from "./CartSummary";
 import { MobileCheckout } from "./MobileCheckout";
 
 export default function CartPage() {
+  const router = useRouter();
   const [page] = useState(1);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   const { data, isLoading, isFetching, error } = useCartList({ page });
 
   const items: CartItemType[] = data ?? [];
 
+  const onCheckout = async () => {
+    if (selectedItems.size === 0) {
+      alert("Please select at least one item to checkout");
+      return;
+    }
+
+    try {
+      // Get selected cart items
+      const selectedCartItems = items.filter((item) =>
+        selectedItems.has(item.id)
+      );
+
+      // Prepare checkout session input
+      const checkoutItems = selectedCartItems.map((item) => ({
+        variantId: item.product?.variant?.id || "",
+        quantity: item.quantity,
+      }));
+
+      // Create checkout session
+      const session = await createCheckoutSession({
+        items: checkoutItems,
+      });
+
+      // Navigate to checkout page
+      router.push(`/checkout/${session.externalId}`);
+    } catch (error) {
+      console.error("Failed to create checkout session:", error);
+      alert("Failed to proceed to checkout. Please try again.");
+    }
+  };
+
   const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
+    setSelectedItems((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
 
   const totalPrice = useMemo(() => {
     return items
-      .filter((item) => selectedIds.has(item.id))
+      .filter((item) => selectedItems.has(item.id))
       .reduce(
         (sum, item) =>
           sum + (item?.product?.variant?.price ?? 0) * item.quantity,
         0
       );
-  }, [items, selectedIds]);
+  }, [items, selectedItems]);
 
   /* ---------- STATES ---------- */
   if (isLoading || isFetching) {
@@ -63,7 +101,7 @@ export default function CartPage() {
             >
               {/* CHECKBOX */}
               <button onClick={() => toggleSelect(item.id)} className="mt-2">
-                {selectedIds.has(item.id) ? (
+                {selectedItems.has(item.id) ? (
                   <SquareCheck className="text-green-600" />
                 ) : (
                   <Square className="text-gray-400" />
@@ -100,10 +138,10 @@ export default function CartPage() {
       </div>
 
       {/* RIGHT SIDEBAR */}
-      <CartSummary total={totalPrice} />
+      <CartSummary total={totalPrice} onCheckout={onCheckout} />
 
       {/* MOBILE CHECKOUT */}
-      <MobileCheckout total={totalPrice} />
+      <MobileCheckout total={totalPrice} onCheckout={onCheckout} />
     </div>
   );
 }

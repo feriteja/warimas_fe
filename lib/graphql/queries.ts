@@ -116,3 +116,15 @@ query GetAddress($AddressID: ID!) {
     isDefault
   }
 }`;
+
+export const GET_PAYAMENT_ORDER_INFO = `
+query PaymentOrderInfo($externalId: String!) {
+  paymentOrderInfo(externalId:$externalId){
+    status 
+    expiresAt
+    totalAmount
+    currency
+    shippingAddress{name receiverName phone address1 city province postalCode} 
+    payment{method bank instructions paymentCode instructions referenceId}
+  }
+}`;

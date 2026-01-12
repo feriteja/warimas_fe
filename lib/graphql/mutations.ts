@@ -71,10 +71,11 @@ mutation UpdateSessionAddress($input: UpdateSessionAddressInput!){
   }
 }`;
 
-export const CONFIRM_CHECKOUT_SESSION = `mutation ConfirmCheckoutSession($input: ConfirmCheckoutSessionInput!){
+export const CONFIRM_CHECKOUT_SESSION = `
+mutation ConfirmCheckoutSession($input: ConfirmCheckoutSessionInput!){
   confirmCheckoutSession(input:$input){
     success
     message
-    session {id  status expiresAt subtotal}
-  }
+    order_external_id
+   }
 }`;

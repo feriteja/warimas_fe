@@ -4,12 +4,16 @@ import {
   CREATE_SESSION_CHECKOUT,
   UPDATE_SESSION_ADDRESS,
 } from "@/lib/graphql/mutations";
-import { GET_CHECKOUT_SESSION_DATA } from "@/lib/graphql/queries";
+import {
+  GET_CHECKOUT_SESSION_DATA,
+  GET_PAYAMENT_ORDER_INFO,
+} from "@/lib/graphql/queries";
 import {
   CheckoutSessionResponse,
   CheckoutSessionType,
   ConfirmCheckoutSessionResponse,
   CreateCheckoutSessionInput,
+  PaymentOrderInfoResponse,
 } from "@/types";
 
 export async function createCheckoutSession(
@@ -36,7 +40,7 @@ export async function getSessionData({
   return graphqlFetch<{ checkoutSession: CheckoutSessionType }>(
     GET_CHECKOUT_SESSION_DATA,
     {
-      cache: "force-cache",
+      cache: "no-store",
       variables: { externalId },
       cookieHeader: cookieHeader,
     }
@@ -58,16 +62,30 @@ export async function updateCheckoutSessionData(input: {
 
 export async function confirmCheckoutSession({
   externalId,
-  addressId,
 }: {
   externalId: string;
-  addressId?: string;
 }): Promise<ConfirmCheckoutSessionResponse> {
-  return graphqlFetch<{ confirmSession: ConfirmCheckoutSessionResponse }>(
-    CONFIRM_CHECKOUT_SESSION,
+  return graphqlFetch<{
+    confirmCheckoutSession: ConfirmCheckoutSessionResponse;
+  }>(CONFIRM_CHECKOUT_SESSION, {
+    cache: "no-store",
+    variables: { input: { externalId } },
+  }).then((res) => res.confirmCheckoutSession);
+}
+
+export async function getPaymentOrderInfo({
+  externalId,
+  cookieHeader,
+}: {
+  externalId: string;
+  cookieHeader?: string;
+}): Promise<PaymentOrderInfoResponse> {
+  return graphqlFetch<{ paymentOrderInfo: PaymentOrderInfoResponse }>(
+    GET_PAYAMENT_ORDER_INFO,
     {
-      cache: "no-store",
-      variables: { externalId, addressId },
+      cache: "force-cache",
+      variables: { externalId },
+      cookieHeader: cookieHeader,
     }
-  ).then((res) => res.confirmSession);
+  ).then((res) => res.paymentOrderInfo);
 }

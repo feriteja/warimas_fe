@@ -5,6 +5,13 @@ enum CheckoutSessionStatus {
   CANCELLED = "CANCELLED",
 }
 
+export type PaymentStatus =
+  | "REQUIRES_ACTION"
+  | "PAID"
+  | "FAILED"
+  | "EXPIRED"
+  | string;
+
 export interface CheckoutSessionResponse {
   externalId: string;
   status: CheckoutSessionStatus;
@@ -47,5 +54,33 @@ export interface CreateCheckoutSessionInput {
 export interface ConfirmCheckoutSessionResponse {
   success: boolean;
   message?: string;
-  session?: CheckoutSessionType;
+  order_external_id?: string;
+}
+
+export interface PaymentOrderInfoResponse {
+  status: PaymentStatus;
+  expiresAt: string; // Go's time.Time serializes to an ISO 8601 string
+  totalAmount: number;
+  currency: string;
+  shippingAddress?: ShippingAddress; // Pointer indicates it could be null/undefined
+  payment?: PaymentDetail;
+}
+
+export interface PaymentDetail {
+  method: string;
+  bank?: string;
+  paymentCode?: string;
+  referenceId: string;
+  instructions: string[];
+}
+
+export interface ShippingAddress {
+  name: string;
+  receiverName: string;
+  phone: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  province: string;
+  postalCode: string;
 }

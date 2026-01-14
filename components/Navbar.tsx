@@ -112,7 +112,7 @@ export default function Navbar() {
               {/* Desktop Nav Links */}
               <div className="hidden lg:flex items-center gap-6 text-sm font-semibold text-gray-600">
                 <Link
-                  href="/categories"
+                  href="/category"
                   className="hover:text-green-600 transition-colors"
                 >
                   Kategori
@@ -334,7 +334,7 @@ export default function Navbar() {
                     Menu Utama
                   </p>
                   <Link
-                    href="/categories"
+                    href="/category"
                     className="flex items-center justify-between py-3 px-3 font-semibold text-gray-700 hover:bg-gray-50 rounded-xl"
                   >
                     Kategori{" "}
@@ -485,7 +485,7 @@ function BottomNavbar() {
       <BottomTab
         icon={<LayoutGrid size={20} />}
         label="Kategori"
-        href="/categories"
+        href="/category"
       />
       <BottomTab icon={<Tag size={20} />} label="Promo" href="/promo" />
       <BottomTab icon={<User size={20} />} label="Akun" href="/profile" />

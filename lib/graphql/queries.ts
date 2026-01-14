@@ -1,20 +1,36 @@
 export const GET_CATEGORY = `
-  query GetCategory($name: String!) {
-    category(filter: $name) {
-      id
-      name
+  query Category ($filter:String ,$limit:Int, $page:Int ) {
+  category (filter:$filter,limit:$limit, page:$page) {
+   items{ id name 
+    subcategories{
+      id name
+    }}
+    pageInfo {
+      totalItems
+      totalPages
+      page
+      limit
+      hasNextPage
+      hasPreviousPage
     }
   }
+}
 `;
 
 export const GET_SUB_CATEGORY = `
-   query GetSubCategory($name: String!, $categoryID:ID!) {
-    subCategory(filter: $name, categoryID: $categoryID) {
-      id
-      name
+query Subcategory ($categoryId:ID!,$filter:String ,$limit:Int, $page:Int  ) {
+  subcategory(categoryID:$categoryId, filter:$filter,limit:$limit, page:$page) {
+    items{id  categoryID name }
+    pageInfo {
+      totalItems
+      totalPages
+      page
+      limit
+      hasNextPage
+      hasPreviousPage
     }
   }
-`;
+}`;
 
 export const ADMIN_GET_PRODUCT_LIST = `query($filter: ProductFilterInput, $sort: ProductSortInput, $limit: Int, $page: Int) {
   productList(filter: $filter, sort: $sort, limit: $limit, page: $page) {

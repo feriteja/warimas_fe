@@ -1,6 +1,7 @@
 import { graphqlFetch } from "@/lib/graphql/fetcher";
 import { ADD_CATEGORY, ADD_SUB_CATEGORY } from "@/lib/graphql/mutations";
 import { GET_CATEGORY, GET_SUB_CATEGORY } from "@/lib/graphql/queries";
+import { CategoryData, SubCategoryData } from "@/types";
 
 /* ----------------------------------
  * Category Mutations
@@ -37,38 +38,22 @@ export async function addSubCategory(
   }).then((res) => res.addSubCategory);
 }
 
-/* ----------------------------------
- * Types
- * ---------------------------------- */
-
-type Category = {
-  id: string;
-  name: string;
-};
-
-type GetCategoryResponse = {
-  category: Category[];
-};
-
-type GetSubCategoryResponse = {
-  subCategory: Category[];
-};
-
-/* ----------------------------------
- * Queries
- * ---------------------------------- */
-
-/**
- * query GetCategory($name: String!)
- */
-export async function getCategoryByName(name: string): Promise<Category[]> {
-  const res = await graphqlFetch<GetCategoryResponse, { name: string }>(
-    GET_CATEGORY,
-    {
-      variables: { name },
-      cache: "force-cache",
-    }
-  );
+export async function getCategory({
+  name,
+  limit,
+  page,
+}: {
+  name?: string;
+  limit?: number;
+  page?: number;
+}): Promise<CategoryData> {
+  const res = await graphqlFetch<
+    { category: CategoryData },
+    { filter?: string; limit?: number; page?: number }
+  >(GET_CATEGORY, {
+    variables: { filter: name, limit, page },
+    cache: "force-cache",
+  });
 
   return res.category;
 }
@@ -76,17 +61,24 @@ export async function getCategoryByName(name: string): Promise<Category[]> {
 /**
  * query GetSubCategory($name: String!, $categoryID: ID!)
  */
-export async function getSubCategoryByName(
-  name: string,
-  categoryID: string
-): Promise<Category[]> {
+export async function getSubCategory({
+  name,
+  categoryId,
+  limit,
+  page,
+}: {
+  name: string;
+  categoryId: string;
+  limit: number;
+  page: number;
+}): Promise<SubCategoryData> {
   const res = await graphqlFetch<
-    GetSubCategoryResponse,
-    { name: string; categoryID: string }
+    { subcategory: SubCategoryData },
+    { categoryId: string; filter?: string; limit?: number; page?: number }
   >(GET_SUB_CATEGORY, {
-    variables: { name, categoryID },
+    variables: { categoryId, filter: name, limit, page },
     cache: "force-cache",
   });
 
-  return res.subCategory;
+  return res.subcategory;
 }

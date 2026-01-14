@@ -23,7 +23,7 @@ export default function ConfirmButton({ externalId }: { externalId: string }) {
       <button
         onClick={handleConfirm}
         disabled={isPending}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 py-4 text-white shadow-xl transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 text-white shadow-xl transition-all hover:bg-gray-800 active:scale-[0.98] disabled:opacity-50"
       >
         <Lock size={18} />
         <span className="font-bold">

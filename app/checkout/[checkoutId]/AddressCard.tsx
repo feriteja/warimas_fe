@@ -10,7 +10,9 @@ export default function AddressCard({
   selectedAddress,
   totalAddress,
   addressList,
+  status,
 }: {
+  status: string;
   selectedAddress?: AddressType;
   totalAddress: number;
   addressList: AddressType[];
@@ -68,8 +70,17 @@ export default function AddressCard({
         </div>
 
         <button
+          type="button" // Always specify type to prevent accidental form submissions
+          disabled={status !== "PENDING"}
           onClick={() => setOpen(true)}
-          className="rounded-lg bg-gray-50 px-3 py-2 text-xs font-bold text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-600"
+          className="
+    rounded-md px-3 py-1.5 text-xs font-semibold tracking-wide
+    transition-all duration-200
+    
+    bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600
+    
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100 disabled:hover:text-gray-600
+  "
         >
           Ganti
         </button>

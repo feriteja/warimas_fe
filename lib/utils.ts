@@ -56,5 +56,13 @@ export const formatIDR = (value: number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
+    minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
+
+export const formatDate = (date: Date) => {
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};

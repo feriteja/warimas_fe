@@ -1,117 +1,210 @@
-"use client";
-import Image from "next/image";
+import { SafeImage } from "@/components/SafeImage";
+import { getOrderList } from "@/services/order.service";
+import { Order } from "@/types";
+import { cookies } from "next/headers";
+import Link from "next/link";
 
-// Dummy data: list of orders
-const orders = [
-  {
-    id: "ORD-2024-001",
-    date: "2024-10-12",
-    status: "Selesai",
-    total: 52000,
-    items: [
-      {
-        id: 1,
-        name: "Product Satu",
-        price: 12000,
-        qty: 1,
-        img: "https://via.placeholder.com/200/200?1",
-      },
-      {
-        id: 2,
-        name: "Product Dua",
-        price: 20000,
-        qty: 2,
-        img: "https://via.placeholder.com/200/200?2",
-      },
-    ],
-  },
-  {
-    id: "ORD-2024-002",
-    date: "2024-10-10",
-    status: "Dikirim",
-    total: 18000,
-    items: [
-      {
-        id: 3,
-        name: "Product Tiga",
-        price: 9000,
-        qty: 2,
-        img: "https://via.placeholder.com/200/200?3",
-      },
-    ],
-  },
-];
+// Helper for currency formatting
+const formatCurrency = (amount: number, currency: string) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: currency,
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
 
-export default function OrdersPage() {
+// Helper for date formatting
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+export default async function OrderPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
+  const cookieStore = await cookies();
+
+  // 1. Parse Query Param (SSR)
+  const currentPage = Number(searchParams.page) || 1;
+
+  // 2. Fetch Data (Server-side)
+  const orderList = await getOrderList({
+    cookieHeader: cookieStore.toString(),
+    pagination: { page: currentPage },
+  });
+  const { items, pageInfo } = orderList;
+
   return (
-    <div className="min-h-screen w-full  bg-gradient-to-b from-gray-50 to-gray-100  p-4 md:p-8 flex flex-col gap-6">
-      <h1 className="text-xl font-bold">Daftar Pesanan</h1>
-
-      <div className="flex flex-col gap-6">
-        {orders.map((order) => (
-          <div
-            key={order.id}
-            className="bg-white border rounded-xl shadow-sm p-4 flex flex-col gap-4"
-          >
-            {/* ORDER HEADER */}
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-semibold">Order ID: {order.id}</p>
-                <p className="text-sm text-gray-500">{order.date}</p>
-              </div>
-              <span
-                className={`px-3 py-1 text-sm rounded-full font-semibold
-                  ${
-                    order.status === "Selesai"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-blue-100 text-blue-700"
-                  }`}
-              >
-                {order.status}
-              </span>
-            </div>
-
-            {/* ITEMS INSIDE ORDER */}
-            <div className="flex flex-col gap-4">
-              {order.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex gap-4 items-center border-b pb-4 last:border-none"
-                >
-                  <div className="relative w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
-                    <Image
-                      src={item.img}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-col flex-1">
-                    <p className="font-semibold text-gray-800">{item.name}</p>
-                    <p className="text-green-600 font-bold text-sm">
-                      Rp {item.price.toLocaleString()}
-                    </p>
-                    <p className="text-sm text-gray-500">Qty: {item.qty}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* ORDER FOOTER */}
-            <div className="flex justify-between items-center mt-2">
-              <p className="text-lg font-bold">
-                Total: Rp {order.total.toLocaleString()}
-              </p>
-              <button
-                className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold"
-                onClick={() => (window.location.href = `/orders/${order.id}`)}
-              >
-                Lihat Detail
-              </button>
-            </div>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Riwayat Pesanan
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Kelola pembelian dan faktur terbaru Anda
+            </p>
           </div>
-        ))}
+          <div className="text-right">
+            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-400">
+              Total Pesanan: {pageInfo.totalItems}
+            </span>
+          </div>
+        </div>
+
+        {/* Order List */}
+        <div className="space-y-6">
+          {items.map((order) => (
+            <Link key={order.externalId} href={`/orders/${order.externalId}`}>
+              <OrderCard order={order} />
+            </Link>
+          ))}
+
+          {items.length === 0 && (
+            <div className="text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200">
+              Tidak ada pesanan.
+            </div>
+          )}
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between mt-8 border-t border-gray-200 pt-6">
+          <div className="text-sm text-gray-500">
+            Halaman <span className="font-medium">{pageInfo.page}</span> dari{" "}
+            <span className="font-medium">{pageInfo.totalPages}</span>
+          </div>
+
+          <div className="flex gap-2">
+            {pageInfo.page > 1 ? (
+              <Link
+                href={`/order?page=${pageInfo.page - 1}`}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Sebelumnya
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-50 border border-gray-200 rounded-md cursor-not-allowed"
+              >
+                Sebelumnya
+              </button>
+            )}
+
+            {pageInfo.hasNextPage ? (
+              <Link
+                href={`/orders?page=${pageInfo.page + 1}`}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                Berikutnya
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-50 border border-gray-200 rounded-md cursor-not-allowed"
+              >
+                Berikutnya
+              </button>
+            )}
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+// --- Component: Individual Order Card ---
+// We can keep this in the same file for simplicity or move to /components
+function OrderCard({ order }: { order: Order }) {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
+      {/* Card Header */}
+      <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="text-xs text-gray-500 uppercase font-semibold tracking-wider">
+            Pesanan dibuat
+          </div>
+          <div className="text-sm text-gray-900 font-medium">
+            {formatDate(order.timestamps.createdAt)}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs text-gray-500 uppercase font-semibold tracking-wider">
+            Total
+          </div>
+          <div className="text-sm text-gray-900 font-medium">
+            {formatCurrency(order.pricing.total, order.pricing.currency)}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs text-gray-500 uppercase font-semibold tracking-wider">
+            Kirim ke
+          </div>
+          <div className="text-sm text-gray-900 font-medium truncate max-w-[150px]">
+            {order.shipping.address.name}
+          </div>
+        </div>
+        <div className="text-right sm:ml-auto">
+          <span className="text-xs text-gray-400">#{order.externalId}</span>
+        </div>
+      </div>
+
+      {/* Card Body (Items) */}
+      <div className="p-6">
+        <ul className="divide-y divide-gray-100">
+          {order.items.map((item) => (
+            <li key={item.id} className="py-4 first:pt-0 last:pb-0 flex gap-4">
+              <div className="flex-shrink-0 w-16 h-16 bg-gray-100 rounded-md overflow-hidden relative border border-gray-200">
+                {/* Use Next/Image for real implementation */}
+                <SafeImage
+                  src={item.variant.imageUrl || "/placeholder.png"}
+                  alt={item.variant.productName}
+                  fill
+                  className="object-cover w-full h-full"
+                />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium text-gray-900">
+                  {item.variant.productName}
+                </h3>
+                <p className="text-sm text-gray-500">{item.variant.name}</p>
+                <div className="mt-1 flex items-center text-xs text-gray-500">
+                  <span>
+                    Jml: {item.quantity} {item.quantityType.toLowerCase()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">
+                  {formatCurrency(item.pricing.price, order.pricing.currency)}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Card Footer (Actions) */}
+      {/* <div className="bg-gray-50 px-6 py-3 border-t border-gray-100 flex justify-end gap-3">
+        <button className="text-sm font-medium text-blue-600 hover:text-blue-500">
+          Lihat Faktur
+        </button>
+        <div className="h-4 w-px bg-gray-300 self-center"></div>
+        <button className="text-sm font-medium text-blue-600 hover:text-blue-500">
+          Lacak Paket
+        </button>
+      </div> */}
     </div>
   );
 }

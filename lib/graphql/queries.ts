@@ -128,3 +128,107 @@ query PaymentOrderInfo($externalId: String!) {
     payment{method bank instructions paymentCode instructions referenceId}
   }
 }`;
+
+export const GET_ORDER_LIST = `
+query OrderList($filter: OrderFilterInput, $sort:OrderSortInput, $pagination: PaginationInput) {
+  orderList( filter:$filter, sort:$sort, pagination:$pagination) {
+    pageInfo {
+      totalItems
+      totalPages
+      page
+      limit
+      hasNextPage
+    }
+    items {
+      id
+      externalId
+      invoiceNumber
+      status
+      user {
+        id
+      }
+      pricing {
+        currency
+        subtotal
+        total
+        tax
+        discount
+        shippingFee
+        
+      }
+      items {
+        id
+        quantity
+        quantityType
+        pricing {price subtotal}
+        variant {
+          id
+          name
+          productName
+          imageUrl
+        }
+      }
+      shipping {
+        address {
+          id
+          receiverName
+          name
+        }
+      }
+      timestamps {
+        createdAt
+        updatedAt
+      }
+    }
+  }
+}`;
+
+export const GET_ORDER_DETAIL = `
+query OrderDetailByExternalId($externalId: ID!) {
+  orderDetailByExternalId(externalId: $externalId) {
+    id
+    externalId
+    invoiceNumber
+    status
+    items {
+      id
+      quantity
+      quantityType
+      variant {
+        id
+        name
+        productName
+        imageUrl
+      }
+      pricing {
+        price
+        subtotal
+      }
+    }
+    user {
+      id
+    }
+    pricing {
+      currency
+      subtotal
+      tax
+      discount
+      shippingFee
+      total
+    }
+    shipping {
+      address {
+        id
+        name
+        receiverName
+        phone
+        addressLine1
+        addressLine2
+        city
+        province
+        country
+        postalCode
+      }
+    }
+  }
+}`;

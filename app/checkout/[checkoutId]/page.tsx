@@ -48,6 +48,7 @@ export default async function CheckoutPage({ params }: Props) {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <AddressCard
+              status={sessionData.status}
               addressList={addressList}
               selectedAddress={addressList.find(
                 (a) => a.id === sessionData.addressId
@@ -90,40 +91,92 @@ export default async function CheckoutPage({ params }: Props) {
               </div>
             </section>
           </div>
-
           {/* Sidebar Summary */}
-          <div className="relative">
-            <div className="sticky top-8 space-y-6">
-              <section className="rounded-3xl bg-white p-8 shadow-lg border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">
-                  Ringkasan
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex justify-between text-gray-500 font-medium">
-                    <span>Subtotal</span>
-                    <span>{formatIDR(subtotal)}</span>
+          <aside className="relative">
+            <div className="sticky top-8 lg:w-[380px]">
+              <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                {/* Header */}
+                <div className="px-6 py-5 border-b border-slate-50">
+                  <h2 className="text-lg font-semibold text-slate-900">
+                    Ringkasan Pesanan
+                  </h2>
+                </div>
+
+                {/* Breakdown */}
+                <div className="p-6 space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Subtotal</span>
+                    <span className="font-medium text-slate-700">
+                      {formatIDR(subtotal)}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-gray-500 font-medium">
-                    <span>Pajak (11%)</span>
-                    <span>{formatIDR(tax)}</span>
+
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Pajak (11%)</span>
+                    <span className="font-medium text-slate-700">
+                      {formatIDR(tax)}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-gray-500 font-medium pb-4 border-b">
-                    <span>Ongkos Kirim</span>
-                    <span>{formatIDR(sessionData.shippingFee)}</span>
+
+                  <div className="flex justify-between text-sm pb-2">
+                    <span className="text-slate-500">Ongkos Kirim</span>
+                    <span className="font-medium text-slate-700">
+                      {formatIDR(sessionData.shippingFee)}
+                    </span>
                   </div>
-                  <div className="flex justify-between pt-2">
-                    <span className="text-lg font-bold">Total</span>
-                    <span className="text-2xl font-black text-blue-600">
+
+                  {/* Divider */}
+                  <div className="h-px bg-dashed bg-slate-200 w-full border-t border-dashed" />
+
+                  {/* Total */}
+                  <div className="flex justify-between items-center pt-2">
+                    <div>
+                      <span className="block text-sm font-medium text-slate-900">
+                        Total Tagihan
+                      </span>
+                      <span className="text-xs text-slate-400 font-normal">
+                        Sudah termasuk PPN
+                      </span>
+                    </div>
+                    <span className="text-xl font-bold text-blue-600 tracking-tight">
                       {formatIDR(totalAmount)}
                     </span>
                   </div>
-                </div>
-                <div className="mt-8">
-                  <ConfirmButton externalId={checkoutId} />
+
+                  {/* Action Button */}
+                  <div className="mt-6">
+                    {sessionData.status !== "EXPIRED" ? (
+                      <ConfirmButton externalId={checkoutId} />
+                    ) : (
+                      <div className="w-full py-3 px-4 bg-red-50 border border-red-100 rounded-xl text-center">
+                        <span className="text-sm font-semibold text-red-600 uppercase tracking-wider">
+                          Sesi Berakhir
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </section>
+
+              {/* Optional: Security Badge */}
+              <p className="mt-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1">
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                Pembayaran Aman & Terenkripsi
+              </p>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>

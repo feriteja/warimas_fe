@@ -6,6 +6,8 @@ import {
 } from "@/lib/graphql/mutations";
 import {
   GET_CHECKOUT_SESSION_DATA,
+  GET_ORDER_DETAIL,
+  GET_ORDER_LIST,
   GET_PAYAMENT_ORDER_INFO,
 } from "@/lib/graphql/queries";
 import {
@@ -13,6 +15,11 @@ import {
   CheckoutSessionType,
   ConfirmCheckoutSessionResponse,
   CreateCheckoutSessionInput,
+  Order,
+  OrderFilterInput,
+  OrderList,
+  OrderPaginationInput,
+  OrderSortInput,
   PaymentOrderInfoResponse,
 } from "@/types";
 
@@ -88,4 +95,43 @@ export async function getPaymentOrderInfo({
       cookieHeader: cookieHeader,
     }
   ).then((res) => res.paymentOrderInfo);
+}
+
+export async function getOrderList({
+  filter,
+  sort,
+  pagination,
+  cookieHeader,
+}: {
+  cookieHeader?: string;
+  filter?: OrderFilterInput;
+  sort?: OrderSortInput;
+  pagination?: OrderPaginationInput;
+}) {
+  return graphqlFetch<
+    { orderList: OrderList },
+    {
+      filter?: OrderFilterInput;
+      sort?: OrderSortInput;
+      pagination?: OrderPaginationInput;
+    }
+  >(GET_ORDER_LIST, {
+    cache: "force-cache",
+    variables: { filter, sort, pagination },
+    cookieHeader: cookieHeader,
+  }).then((res) => res.orderList);
+}
+
+export async function getOrderDetail({
+  externalId,
+  cookieHeader,
+}: {
+  externalId: string;
+  cookieHeader?: string;
+}): Promise<Order> {
+  return graphqlFetch<{ orderDetailByExternalId: Order }>(GET_ORDER_DETAIL, {
+    cache: "force-cache",
+    variables: { externalId },
+    cookieHeader: cookieHeader,
+  }).then((res) => res.orderDetailByExternalId);
 }

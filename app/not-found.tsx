@@ -1,29 +1,27 @@
+// app/orders/[orderId]/not-found.tsx
 import Link from "next/link";
+import { FileQuestion } from "lucide-react";
 
-export default function NotFound() {
+export default function OrderNotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-neutral-900 to-neutral-950 px-6 text-center text-white">
-      <div className="max-w-md">
-        <p className="mb-2 text-sm uppercase tracking-widest text-neutral-400">
-          404 Error
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center max-w-md w-full">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FileQuestion className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Order Not Found
+        </h2>
+        <p className="text-gray-500 mb-6">
+          The order ID you are looking for does not exist or has been removed.
         </p>
-
-        <h1 className="mb-4 text-5xl font-bold tracking-tight">
-          Page not found
-        </h1>
-
-        <p className="mb-8 text-neutral-400">
-          Maaf, Sepertinya halaman yang anda cari tidak ada atau sudah pindah
-        </p>
-
         <Link
-          href="/"
-          replace
-          className="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-white/50"
+          href="/orders"
+          className="block w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition"
         >
-          Kembali ke beranda
+          Back to Orders
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

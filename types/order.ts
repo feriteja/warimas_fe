@@ -1,8 +1,21 @@
+import { AddressType } from "./address";
+import { User } from "./user";
+
 enum CheckoutSessionStatus {
   PENDING = "PENDING",
   COMPLETED = "PAID",
   EXPIRED = "EXPIRED",
   CANCELLED = "CANCELLED",
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT = "PENDING_PAYMENT",
+  PAID = "PAID",
+  SHIPPED = "SHIPPED",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+  FAILED = "FAILED",
+  ACCEPTED = "ACCEPTED",
 }
 
 export type PaymentStatus =
@@ -51,6 +64,23 @@ export interface CreateCheckoutSessionInput {
   }[];
 }
 
+export interface OrderFilterInput {
+  search?: string;
+  status?: OrderStatus;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface OrderSortInput {
+  field?: "TOTAL" | "CREATED_AT";
+  direction?: "ASC" | "DESC";
+}
+
+export interface OrderPaginationInput {
+  page?: number;
+  limit?: number;
+}
+
 export interface ConfirmCheckoutSessionResponse {
   success: boolean;
   message?: string;
@@ -83,4 +113,72 @@ export interface ShippingAddress {
   city: string;
   province: string;
   postalCode: string;
+}
+
+// types.ts
+export interface PageInfo {
+  totalItems: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
+}
+
+export interface OrderPricing {
+  currency: string;
+  subtotal: number;
+  total: number;
+  tax: number;
+  discount: number;
+  shippingFee: number;
+}
+
+export interface OrderItemPricing {
+  price: number;
+  subtotal: number;
+}
+
+export interface VariantOrder {
+  id: string;
+  name: string;
+  productName: string;
+  imageUrl: string | null;
+}
+
+export interface OrderItem {
+  id: number;
+  quantity: number;
+  quantityType: string;
+  pricing: OrderItemPricing;
+  variant: VariantOrder;
+}
+
+export interface Shipping {
+  address: AddressType;
+}
+
+export interface Timestamps {
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Order {
+  id: number;
+  externalId: string;
+  invoiceNumber: string | null;
+  status: OrderStatus;
+  user: User;
+  pricing: OrderPricing;
+  items: OrderItem[];
+  shipping: Shipping;
+  timestamps: Timestamps;
+}
+
+export interface OrderList {
+  pageInfo: PageInfo;
+  items: Order[];
+}
+
+export interface OrderListResponse {
+  data: { orderList: OrderList };
 }

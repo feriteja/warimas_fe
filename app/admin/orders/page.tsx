@@ -1,62 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 
-// IMPORTS
-const ORDER_STATUSES = [
-  { key: "incoming", label: "Pesanan Masuk" },
-  { key: "processing", label: "Dalam Proses" },
-  { key: "shipped", label: "Dikirim" },
-  { key: "completed", label: "Selesai" },
-  { key: "canceled", label: "Dibatalkan" },
-  { key: "returned", label: "Diretur" },
-];
-
-// Dummy Data
-const MOCK_ORDERS = Array.from({ length: 32 }, (_, i) => ({
-  id: `ORD-${100 + i}`,
-  buyer: `Pembeli ${i + 1}`,
-  seller: `Warung XYZ`,
-  total: Math.floor(Math.random() * 100000) + 20000,
-  items: [
-    { name: "Barang 1" },
-    { name: "Barang 2" },
-    { name: "Barang 3" },
-    { name: "Barang 4" },
-  ],
-  address: `Alamat No ${i + 1}, Jakarta`,
-  status: i % 2 === 0 ? "incoming" : "processing",
-}));
-
-export default function AdminOrdersPage() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("incoming");
-  const [loading, setLoading] = useState(true);
-
-  // Pagination
-  const [page, setPage] = useState(1);
-  const LIMIT = 5; // per page
-
-  const [orders, setOrders] = useState<any[]>([]);
-
-  // Simulate fetching
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const filtered = MOCK_ORDERS.filter(
-        (o) =>
-          o.status === statusFilter &&
-          o.buyer.toLowerCase().includes(search.toLowerCase())
-      );
-      setOrders(filtered);
-      setLoading(false);
-      setPage(1); // reset to page 1 when filter or search changes
-    }, 600);
-
-    return () => clearTimeout(timer);
-  }, [statusFilter, search]);
-
+export default async function AdminOrdersPage() {
   // Pagination logic
   const totalPages = Math.ceil(orders.length / LIMIT);
   const paginated = orders.slice((page - 1) * LIMIT, page * LIMIT);

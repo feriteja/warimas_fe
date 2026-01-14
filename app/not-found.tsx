@@ -10,13 +10,14 @@ export default function OrderNotFound() {
           <FileQuestion className="w-8 h-8 text-red-500" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Order Not Found
+          Halaman Tidak Ditemukan
         </h2>
         <p className="text-gray-500 mb-6">
-          The order ID you are looking for does not exist or has been removed.
+          Kami tidak dapat menemukan halaman yang Anda cari. Mungkin halaman
+          tersebut telah dihapus atau alamat yang Anda masukkan salah.
         </p>
         <Link
-          href="/orders"
+          href="/"
           className="block w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition"
         >
           Back to Orders

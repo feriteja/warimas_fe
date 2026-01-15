@@ -1,6 +1,10 @@
+import {
+  OrderFilters,
+  OrderPagination,
+} from "@/components/orders/components/client";
 import { SafeImage } from "@/components/SafeImage";
 import { getOrderList } from "@/services/order.service";
-import { Order } from "@/types";
+import { Order, OrderFilterInput, OrderStatus } from "@/types";
 import { cookies } from "next/headers";
 import Link from "next/link";
 
@@ -27,17 +31,27 @@ const formatDate = (dateString: string) => {
 export default async function OrderPage({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: { page?: string; status?: string; search?: string };
 }) {
   const cookieStore = await cookies();
 
   // 1. Parse Query Param (SSR)
   const currentPage = Number(searchParams.page) || 1;
+  const status = searchParams.status || "ALL";
+  const search = searchParams.search || "";
 
-  // 2. Fetch Data (Server-side)
+  // 2. Prepare Filter
+  const filter: OrderFilterInput = {};
+  if (status !== "ALL") {
+    filter.status = status as OrderStatus;
+  }
+  // Note: Add search filter mapping if supported by API, e.g., filter.search = search;
+
+  // 3. Fetch Data (Server-side)
   const orderList = await getOrderList({
     cookieHeader: cookieStore.toString(),
     pagination: { page: currentPage },
+    filter,
   });
   const { items, pageInfo } = orderList;
 
@@ -61,6 +75,9 @@ export default async function OrderPage({
           </div>
         </div>
 
+        {/* Filters */}
+        <OrderFilters initialSearch={search} initialStatus={status} />
+
         {/* Order List */}
         <div className="space-y-6">
           {items.map((order) => (
@@ -77,46 +94,10 @@ export default async function OrderPage({
         </div>
 
         {/* Pagination Controls */}
-        <div className="flex items-center justify-between mt-8 border-t border-gray-200 pt-6">
-          <div className="text-sm text-gray-500">
-            Halaman <span className="font-medium">{pageInfo.page}</span> dari{" "}
-            <span className="font-medium">{pageInfo.totalPages}</span>
-          </div>
-
-          <div className="flex gap-2">
-            {pageInfo.page > 1 ? (
-              <Link
-                href={`/order?page=${pageInfo.page - 1}`}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                Sebelumnya
-              </Link>
-            ) : (
-              <button
-                disabled
-                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-50 border border-gray-200 rounded-md cursor-not-allowed"
-              >
-                Sebelumnya
-              </button>
-            )}
-
-            {pageInfo.hasNextPage ? (
-              <Link
-                href={`/orders?page=${pageInfo.page + 1}`}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                Berikutnya
-              </Link>
-            ) : (
-              <button
-                disabled
-                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-50 border border-gray-200 rounded-md cursor-not-allowed"
-              >
-                Berikutnya
-              </button>
-            )}
-          </div>
-        </div>
+        <OrderPagination
+          page={pageInfo.page}
+          totalPages={pageInfo.totalPages}
+        />
       </div>
     </div>
   );

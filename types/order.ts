@@ -8,14 +8,14 @@ enum CheckoutSessionStatus {
   CANCELLED = "CANCELLED",
 }
 
-enum OrderStatus {
+export enum OrderStatus {
   PENDING_PAYMENT = "PENDING_PAYMENT",
   PAID = "PAID",
+  ACCEPTED = "ACCEPTED",
   SHIPPED = "SHIPPED",
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
   FAILED = "FAILED",
-  ACCEPTED = "ACCEPTED",
 }
 
 export type PaymentStatus =

@@ -69,11 +69,9 @@ export default function Navbar() {
 
   const goToCart = () => {
     try {
-      console.log("clicked");
-
       router.push("/cart");
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

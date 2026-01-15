@@ -1,0 +1,139 @@
+"use client";
+
+import { OrderStatus } from "@/types";
+import { Search } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+
+export const ADMIN_ORDER_STATUSES = [
+  { key: "ALL", label: "Semua" },
+  { key: OrderStatus.PENDING_PAYMENT, label: "Menunggu Bayar" },
+  { key: OrderStatus.PAID, label: "Dibayar" },
+  { key: OrderStatus.ACCEPTED, label: "Diproses" },
+  { key: OrderStatus.SHIPPED, label: "Dikirim" },
+  { key: OrderStatus.COMPLETED, label: "Selesai" },
+  { key: OrderStatus.CANCELLED, label: "Dibatalkan" },
+];
+
+export function OrderFilters({
+  initialSearch,
+  initialStatus,
+}: {
+  initialSearch: string;
+  initialStatus: string;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(initialSearch);
+  const [isPending, startTransition] = useTransition();
+
+  // Debounce search update
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search !== initialSearch) {
+        updateParam("search", search);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search, initialSearch]);
+
+  const updateParam = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value && value !== "ALL") {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+
+    // Reset page to 1 when filtering changes
+    if (key === "search" || key === "status") {
+      params.set("page", "1");
+    }
+
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`);
+    });
+  };
+
+  return (
+    <div className="space-y-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+      {/* Search Bar */}
+      <div className="relative">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          size={18}
+        />
+        <input
+          type="text"
+          placeholder="Cari ID Pesanan, Nama Pembeli..."
+          className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      {/* Status Tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+        {ADMIN_ORDER_STATUSES.map((status) => {
+          const isActive = (initialStatus || "ALL") === status.key;
+          return (
+            <button
+              key={status.key}
+              onClick={() => updateParam("status", status.key)}
+              className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+                isActive
+                  ? "bg-gray-900 text-white border-gray-900 shadow-md"
+                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+              }`}
+            >
+              {status.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function OrderPagination({
+  page,
+  totalPages,
+}: {
+  page: number;
+  totalPages: number;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const setPage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", newPage.toString());
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex items-center justify-center gap-2 mt-8">
+      <button
+        onClick={() => setPage(page - 1)}
+        disabled={page <= 1}
+        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        Sebelumnya
+      </button>
+      <span className="text-sm font-medium text-gray-600 px-2">
+        Halaman {page} dari {totalPages}
+      </span>
+      <button
+        onClick={() => setPage(page + 1)}
+        disabled={page >= totalPages}
+        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        Berikutnya
+      </button>
+    </div>
+  );
+}

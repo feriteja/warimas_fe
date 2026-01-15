@@ -63,6 +63,7 @@ export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
       credentials: "include",
       signal: controller.signal,
       cache,
+      next: { revalidate: 140 },
       headers: {
         "Content-Type": "application/json",
         ...(cookieHeader && { Cookie: cookieHeader }),

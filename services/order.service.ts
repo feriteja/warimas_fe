@@ -9,6 +9,7 @@ import {
   GET_ORDER_DETAIL,
   GET_ORDER_LIST,
   GET_PAYAMENT_ORDER_INFO,
+  UPDATE_ORDER_STATUS,
 } from "@/lib/graphql/queries";
 import {
   CheckoutSessionResponse,
@@ -20,6 +21,7 @@ import {
   OrderList,
   OrderPaginationInput,
   OrderSortInput,
+  OrderStatus,
   PaymentOrderInfoResponse,
 } from "@/types";
 
@@ -116,7 +118,7 @@ export async function getOrderList({
       pagination?: OrderPaginationInput;
     }
   >(GET_ORDER_LIST, {
-    cache: "force-cache",
+    cache: "no-store",
     variables: { filter, sort, pagination },
     cookieHeader: cookieHeader,
   }).then((res) => res.orderList);
@@ -130,8 +132,27 @@ export async function getOrderDetail({
   cookieHeader?: string;
 }): Promise<Order> {
   return graphqlFetch<{ orderDetailByExternalId: Order }>(GET_ORDER_DETAIL, {
-    cache: "force-cache",
+    cache: "no-store",
     variables: { externalId },
     cookieHeader: cookieHeader,
+  }).then((res) => res.orderDetailByExternalId);
+}
+
+export async function updateOrderStatus({
+  orderId,
+  status,
+}: {
+  orderId: number;
+  status: OrderStatus;
+}): Promise<Order> {
+  return graphqlFetch<
+    { orderDetailByExternalId: Order },
+    {
+      orderId: number;
+      status: OrderStatus;
+    }
+  >(UPDATE_ORDER_STATUS, {
+    cache: "force-cache",
+    variables: { orderId, status },
   }).then((res) => res.orderDetailByExternalId);
 }

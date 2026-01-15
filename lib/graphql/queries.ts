@@ -189,6 +189,8 @@ query OrderList($filter: OrderFilterInput, $sort:OrderSortInput, $pagination: Pa
           id
           receiverName
           name
+          addressLine1
+          city
         }
       }
       timestamps {
@@ -246,5 +248,17 @@ query OrderDetailByExternalId($externalId: ID!) {
         postalCode
       }
     }
+    timestamps {
+    createdAt
+    updatedAt
+  }
+ }
+}`;
+
+export const UPDATE_ORDER_STATUS = `
+mutation UpdateOrderStatus($orderId: ID!, $status: OrderStatus!) {
+  updateOrderStatus(input: { orderId: $orderId, status:  $status}) {
+    success
+    message
   }
 }`;

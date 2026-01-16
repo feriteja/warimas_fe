@@ -14,13 +14,14 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import BottomNavbar from "./BottomNav";
 import NavIcon from "./NavIcon";
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
@@ -65,7 +66,7 @@ export default function Navbar() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [pathname]);
 
   const goToCart = () => {
     try {

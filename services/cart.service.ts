@@ -1,15 +1,6 @@
 import { graphqlFetch } from "@/lib/graphql/fetcher";
-import {
-  ADD_CATEGORY,
-  ADD_SUB_CATEGORY,
-  ADD_TO_CART,
-} from "@/lib/graphql/mutations";
-import {
-  GET_CART_LIST,
-  GET_CATEGORY,
-  GET_SUB_CATEGORY,
-} from "@/lib/graphql/queries";
-import { CategoryType } from "@/types";
+import { ADD_TO_CART } from "@/lib/graphql/mutations";
+import { GET_CART_LIST } from "@/lib/graphql/queries";
 import { AddToCartResponseType, CartItemType } from "@/types/cart";
 
 /* ----------------------------------
@@ -52,14 +43,14 @@ export async function getCartList({
   limit = 15,
 }: {
   page?: number;
-  limit: number;
+  limit?: number;
 }): Promise<CartItemType[]> {
   const res = await graphqlFetch<
     getCartListResponse,
     { page?: number; limit: number }
   >(GET_CART_LIST, {
     variables: { page, limit },
-    cache: "force-cache",
+    cache: "no-store",
   });
 
   return res.myCart;

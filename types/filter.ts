@@ -1,8 +1,8 @@
 export type ProductFilterInput = {
-  categoryId?: string;
-  minPrice?: string;
-  maxPrice?: string;
   search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  categoryId?: string;
   inStock?: boolean;
   status?: string;
   sellerName?: string;

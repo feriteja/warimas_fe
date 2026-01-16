@@ -1,24 +1,9 @@
+import { ProductFilterInput } from "./filter";
+import { ProductSortInput } from "./sort";
 import type { VariantType } from "./variant";
 
-export interface ProductType {
-  id: string;
-  name: string;
-  description?: string;
-  categoryId?: string;
-  categoryName: string;
-  subcategoryId: string;
-  subcategoryName: string;
-  slug: string;
-  sellerId: string;
-  sellerName: string;
-  imageUrl: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-
-  variants: VariantType[];
-}
-export interface ProductCartType {
+// This serves as the single source of truth for a Product's core data
+export interface IBaseProduct {
   id: string;
   name: string;
   sellerId: string;
@@ -27,15 +12,43 @@ export interface ProductCartType {
   categoryName: string;
   subcategoryID: string;
   subcategoryName: string;
-  slug: string;
-  variant: VariantType;
-  imageUrl: string;
+  imageUrl: string | null;
   description: string;
-  status: string;
+  status: "active" | "disabled" | string;
   createdAt: string;
   updatedAt: string;
 }
 
+// Standard Product with multiple variants
+export interface ProductType extends IBaseProduct {
+  variants: VariantType[];
+  slug?: string; // Optional if not always present in API
+}
+
+// Cart Product specifically holds one selected variant
+export interface ProductCartType extends IBaseProduct {
+  variant: VariantType;
+  slug: string;
+}
+
+export interface ProductList {
+  page: number;
+  limit: number;
+  totalCount: number;
+  hasNext: boolean;
+  items: ProductType[]; // Uses the consolidated ProductType
+}
+
+export interface ProductsHome {
+  CategoryName: string;
+  Products: ProductType[];
+}
+
+export interface ProductsHomeListType {
+  productsHome: ProductsHome[];
+}
+
+// Creating a product usually requires fewer fields
 export type CreateProductInput = {
   name: string;
   price: number;
@@ -55,11 +68,9 @@ export interface FilterState {
   sellerName: string;
 }
 
-export interface ProductsHomeListType {
-  productsHome: ProductsHome[];
-}
-
-export interface ProductsHome {
-  CategoryName: string;
-  Products: ProductType[];
-}
+export type PaginationVars = {
+  filter?: ProductFilterInput;
+  sort?: ProductSortInput;
+  limit?: number;
+  page?: number;
+};

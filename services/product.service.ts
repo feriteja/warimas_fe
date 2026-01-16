@@ -1,51 +1,23 @@
 import { graphqlFetch } from "@/lib/graphql/fetcher";
 import { ADD_PRODUCT, ADD_PRODUCT_VARIANT } from "@/lib/graphql/mutations";
 import {
-  ADMIN_GET_PRODUCT_LIST,
   GET_PRODUCT_DETAIL,
   GET_PRODUCT_HOME_LIST,
-} from "@/lib/graphql/queries";
+  GET_PRODUCT_LIST,
+} from "@/lib/graphql/query/product.query";
 import {
   CreateProductInput,
   CreateProductVariantInput,
+  PaginationVars,
   ProductFilterInput,
+  ProductList,
   ProductsHomeListType,
   ProductSortInput,
   ProductType,
   VariantType,
 } from "@/types";
 
-/* ----------------------------------
- * Shared Types
- * ---------------------------------- */
-
-type PaginationVars = {
-  filter?: ProductFilterInput;
-  sort?: ProductSortInput;
-  limit?: number;
-  page?: number;
-};
-
-type ProductListResponse = {
-  productList: {
-    page: number;
-    limit: number;
-    totalCount: number;
-    hasNext: boolean;
-    items: ProductType[];
-  };
-};
-
-/* ----------------------------------
- * Product Mutations
- * ---------------------------------- */
-
-/**
- * mutation AddProduct($input: NewProduct!)
- */
-export async function addProduct(
-  input: CreateProductInput
-): Promise<ProductType> {
+async function addProduct(input: CreateProductInput): Promise<ProductType> {
   return graphqlFetch<
     { createProduct: ProductType },
     { input: CreateProductInput }
@@ -78,19 +50,35 @@ export async function addProductVariants(
  * query productList(...)
  */
 export async function getProductList(
+  vars?: PaginationVars
+): Promise<ProductList> {
+  return graphqlFetch<{ productList: ProductList }, PaginationVars>(
+    GET_PRODUCT_LIST,
+    {
+      variables: {
+        limit: 20,
+        page: 1,
+        ...vars,
+      },
+      cache: "force-cache",
+    }
+  ).then((res) => res.productList);
+}
+
+export async function getAdminProductList(
   vars: PaginationVars
-): Promise<ProductListResponse> {
-  return graphqlFetch<ProductListResponse, PaginationVars>(
-    ADMIN_GET_PRODUCT_LIST,
+): Promise<ProductList> {
+  return graphqlFetch<{ productList: ProductList }, PaginationVars>(
+    GET_PRODUCT_LIST,
     {
       variables: {
         limit: 20,
         page: 0,
         ...vars,
       },
-      cache: "no-store", // admin data should not be cached
+      cache: "no-store",
     }
-  );
+  ).then((res) => res.productList);
 }
 
 /* ----------------------------------

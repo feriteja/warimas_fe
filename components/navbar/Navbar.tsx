@@ -1,23 +1,23 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import {
-  Search,
-  User,
-  Menu,
-  X,
-  Bell,
-  ShoppingCart,
-  Mail,
   ChevronDown,
-  Home,
-  LayoutGrid,
-  Tag,
+  LogOut,
+  Menu,
+  Package,
+  Search,
+  Settings,
+  ShoppingCart,
+  User,
+  User as UserIcon,
+  X,
 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Package, Settings, User as UserIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import BottomNavbar from "./BottomNav";
+import NavIcon from "./NavIcon";
 
 export default function Navbar() {
   const router = useRouter();
@@ -394,57 +394,6 @@ export default function Navbar() {
 
 // --- SUB-COMPONENTS ---
 
-function NavIcon({
-  icon,
-  count,
-  onClick,
-  label,
-}: {
-  icon: React.ReactNode;
-  count?: number;
-  onClick?: () => void;
-  label: string;
-}) {
-  return (
-    <button
-      onClick={() => onClick?.()}
-      title={label}
-      className="relative flex h-11 w-11 items-center justify-center rounded-xl text-gray-600 transition-all hover:bg-green-50 hover:text-green-600 active:scale-90"
-    >
-      {icon}
-      {typeof count === "number" && (
-        <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white">
-          {count}
-        </span>
-      )}
-    </button>
-  );
-}
-
-function BottomTab({
-  icon,
-  label,
-  active = false,
-  href,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`flex flex-col items-center justify-center gap-1 transition-colors ${
-        active ? "text-green-600" : "text-gray-400 hover:text-gray-600"
-      }`}
-    >
-      {icon}
-      <span className="text-[10px] font-bold tracking-tight">{label}</span>
-    </Link>
-  );
-}
-
 function DropdownItem({
   icon,
   label,
@@ -462,31 +411,5 @@ function DropdownItem({
       <span className="text-gray-400 group-hover:text-green-600">{icon}</span>
       {label}
     </Link>
-  );
-}
-
-function BottomNavbar() {
-  const pathname = usePathname();
-
-  // Routes where bottom navbar should NOT be shown
-  const HIDDEN_NAVBAR_ROUTES = ["/product", "/checkout", "/login"];
-
-  const shouldHideNavbar = HIDDEN_NAVBAR_ROUTES.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  if (shouldHideNavbar) return null;
-
-  return (
-    <div className="fixed bottom-0 left-0 z-50 flex h-16 w-full items-center justify-around border-t border-gray-100 bg-white px-2 pb-safe md:hidden">
-      <BottomTab icon={<Home size={20} />} label="Home" active href="/" />
-      <BottomTab
-        icon={<LayoutGrid size={20} />}
-        label="Kategori"
-        href="/category"
-      />
-      <BottomTab icon={<Tag size={20} />} label="Promo" href="/promo" />
-      <BottomTab icon={<User size={20} />} label="Akun" href="/profile" />
-    </div>
   );
 }

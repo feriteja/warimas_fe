@@ -5,10 +5,11 @@ import SearchClient from "./SearchClient";
 // --- Main Page Component (Server) ---
 
 export default async function SearchPage({
-  searchParams,
+  searchParams: rawSearchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const searchParams = await rawSearchParams;
   // Parse params
   const search =
     typeof searchParams.q === "string" ? searchParams.q : undefined;

@@ -37,6 +37,7 @@ export default function SearchClient({
   const [sort, setSort] = useState<ProductSortInput>(initialSort);
 
   const isInitialMount = useRef(true);
+  const isSyncingFromProps = useRef(false);
 
   // 2. Fetch Logic
   const fetchProducts = useCallback(
@@ -103,10 +104,33 @@ export default function SearchClient({
   );
 
   // 3. Effects
-  // Reset when filters change
+
+  // Sync state with props (Server-side navigation / URL changes)
+  useEffect(() => {
+    // Skip on initial mount as state is already initialized
+    if (isInitialMount.current) return;
+
+    // Flag that we are syncing from props to prevent the other effect from fetching/updating URL
+    isSyncingFromProps.current = true;
+
+    setFilters(initialFilters);
+    setSort(initialSort);
+    setProducts(initialProducts);
+    setHasMore(initialHasNext);
+    setPage(1);
+  }, [initialFilters, initialSort, initialProducts, initialHasNext]);
+
+  // Reset/Fetch when filters change (Client-side interaction)
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
+      return;
+    }
+
+    // If we just synced from props, we don't need to fetch or update URL
+    // because the data came from the server and the URL is already correct.
+    if (isSyncingFromProps.current) {
+      isSyncingFromProps.current = false;
       return;
     }
 

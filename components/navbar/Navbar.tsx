@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import BottomNavbar from "./BottomNav";
 import NavIcon from "./NavIcon";
@@ -22,12 +22,24 @@ import NavIcon from "./NavIcon";
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [searchProduct, setSearchProduct] = useState<string>("");
+
+  // Sync search input with URL query param
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      setSearchProduct(q);
+    } else {
+      setSearchProduct("");
+    }
+  }, [searchParams]);
 
   // Scroll effect for professional "floating" feel
   useEffect(() => {
@@ -134,11 +146,20 @@ export default function Navbar() {
                     className="text-gray-400 group-focus-within:text-green-500 transition-colors"
                   />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Cari sayur, buah, atau bumbu..."
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-500/10 outline-none"
-                />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    router.push(`/search?q=${searchProduct}`);
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Cari sayur, buah, atau bumbu..."
+                    value={searchProduct}
+                    onChange={(e) => setSearchProduct(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-500/10 outline-none"
+                  />
+                </form>
               </div>
             </div>
 

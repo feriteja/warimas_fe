@@ -1,7 +1,18 @@
 import { graphqlFetch } from "@/lib/graphql/fetcher";
-import { ADD_TO_CART } from "@/lib/graphql/mutations";
-import { GET_CART_LIST } from "@/lib/graphql/queries";
-import { AddToCartResponseType, CartItemType } from "@/types/cart";
+import {
+  ADD_TO_CART,
+  DELETE_CART_LIST,
+  UPDATE_CART_LIST,
+} from "@/lib/graphql/mutation/cart.mutation";
+
+import { GET_CART_LIST } from "@/lib/graphql/query/cart.query";
+import {
+  AddToCartResponseType,
+  CartItemType,
+  CartListResponse,
+  CartSortField,
+  CartSortInput,
+} from "@/types/cart";
 
 /* ----------------------------------
  * Category Mutations
@@ -23,35 +34,55 @@ export async function addToCart({
   }).then((res) => res.addToCart);
 }
 
-/* ----------------------------------
- * Types
- * ---------------------------------- */
-
-type getCartListResponse = {
-  myCart: CartItemType[];
-};
-
-/* ----------------------------------
- * Queries
- * ---------------------------------- */
-
-/**
- * query GetCategory($name: String!)
- */
 export async function getCartList({
   page = 1,
   limit = 15,
 }: {
   page?: number;
   limit?: number;
-}): Promise<CartItemType[]> {
+}): Promise<CartListResponse> {
   const res = await graphqlFetch<
-    getCartListResponse,
-    { page?: number; limit: number }
+    { myCart: CartListResponse },
+    { page?: number; limit: number; sort: CartSortInput }
   >(GET_CART_LIST, {
-    variables: { page, limit },
+    variables: {
+      page,
+      limit,
+      sort: { field: CartSortField.CREATED_AT, direction: "DESC" },
+    },
     cache: "no-store",
   });
 
   return res.myCart;
+}
+
+export async function updateCartList({
+  variantId,
+  quantity,
+}: {
+  variantId: string;
+  quantity: number;
+}): Promise<{ success: boolean }> {
+  console.log("dipanggil");
+
+  console.log({ variantId, quantity });
+
+  return graphqlFetch<{ updateCart: { success: boolean } }>(UPDATE_CART_LIST, {
+    variables: { variantId, quantity },
+    cache: "no-store",
+  }).then((res) => res.updateCart);
+}
+
+export async function deleteCartList({
+  variantIds,
+}: {
+  variantIds: string[];
+}): Promise<{ success: boolean }> {
+  return graphqlFetch<{ removeFromCart: { success: boolean } }>(
+    DELETE_CART_LIST,
+    {
+      variables: { variantIds },
+      cache: "no-store",
+    }
+  ).then((res) => res.removeFromCart);
 }

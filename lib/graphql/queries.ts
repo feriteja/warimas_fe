@@ -32,19 +32,6 @@ query Subcategory ($categoryId:ID!,$filter:String ,$limit:Int, $page:Int  ) {
   }
 }`;
 
-export const GET_CART_LIST = `
-  query MyCart($limit:Int, $page:Int){
-  myCart(
-    limit:$limit,page:$page) {
-    id 
-    product{id status name sellerId categoryID 
-      variant{id name price  stock}
-    } 
-    createdAt quantity
-  }
-}
-`;
-
 export const GET_CHECKOUT_SESSION_DATA = `
 query GetSessionData ($externalId: String!) {
   checkoutSession (externalId: $externalId) {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import {
   Trash2,
@@ -13,147 +13,117 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { MobileCheckout } from "./MobileCheckout";
+import { formatIDR } from "@/lib/utils";
+import { CartListResponse } from "@/types/cart";
+import {
+  getCartList,
+  updateCartList,
+  deleteCartList,
+} from "@/services/cart.service";
+import { SafeImage } from "@/components/SafeImage";
 
 // --- 1. Definisi Tipe Data (Sesuai JSON Anda) ---
-interface Variant {
-  id: string;
-  price: number;
-  stock: number;
-  imageUrl: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  sellerName: string;
-  variant: Variant;
-}
-
-interface CartItem {
-  id: string;
-  quantity: number;
-  product: Product;
-}
-
-interface PageInfo {
-  totalItems: number;
-  totalPages: number;
-  page: number;
-  limit: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-interface CartResponse {
-  items: CartItem[];
-  pageInfo: PageInfo;
-}
 
 // --- 2. Data Mock Awal ---
-const INITIAL_DATA: CartResponse = {
-  items: [
-    {
-      id: "37",
-      quantity: 1,
-      product: {
-        id: "prod-1",
-        name: "Peralatan Kecil 1 (Set Lengkap)",
-        sellerName: "Toko Feibaru Official",
-        variant: {
-          id: "var-1",
-          price: 6310,
-          stock: 20,
-          imageUrl:
-            "https://via.placeholder.com/200/F3F4F6/000000?text=Produk+1",
-        },
-      },
-    },
-    {
-      id: "36",
-      quantity: 5,
-      product: {
-        id: "prod-2",
-        name: "Plastik & Kantong Sampah 4 - Tahan Bocor",
-        sellerName: "Toko Feibaru Official",
-        variant: {
-          id: "var-2",
-          price: 16852,
-          stock: 38,
-          imageUrl:
-            "https://via.placeholder.com/200/F3F4F6/000000?text=Produk+2",
-        },
-      },
-    },
-    {
-      id: "35",
-      quantity: 1,
-      product: {
-        id: "prod-3",
-        name: "Plastik & Kantong Sampah 4 (Ukuran Kecil)",
-        sellerName: "Toko Feibaru Official",
-        variant: {
-          id: "var-3",
-          price: 5338,
-          stock: 82,
-          imageUrl:
-            "https://via.placeholder.com/200/F3F4F6/000000?text=Produk+3",
-        },
-      },
-    },
-  ],
-  pageInfo: {
-    totalItems: 3,
-    totalPages: 1,
-    page: 1,
-    limit: 20,
-    hasNextPage: false,
-    hasPreviousPage: false,
-  },
-};
-
-// --- 3. Helper: Format Rupiah ---
-const formatRupiah = (value: number) => {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
 
 export default function CartPage() {
   //State
-  const [cartData, setCartData] = useState<CartResponse>(INITIAL_DATA);
+  const [cartData, setCartData] = useState<CartListResponse>();
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
 
   // --- Logic ---
 
-  const handleQuantityChange = (itemId: string, delta: number) => {
-    setCartData((prev) => ({
-      ...prev,
-      items: prev.items.map((item) => {
-        if (item.id === itemId) {
-          const newQty = item.quantity + delta;
-          if (newQty < 1) return item;
-          if (newQty > item.product.variant.stock) return item;
-          return { ...item, quantity: newQty };
-        }
-        return item;
-      }),
-    }));
+  const handleQuantityChange = async (itemId: string, delta: number) => {
+    const item = cartData?.items.find((i) => i.id === itemId);
+    if (!item || !item.product) return;
+
+    const newQty = item.quantity + delta;
+    if (newQty < 1) return;
+    if (newQty > item.product.variant.stock) return;
+
+    // Optimistic Update
+    setCartData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        items: prev.items.map((i) =>
+          i.id === itemId ? { ...i, quantity: newQty } : i
+        ),
+      };
+    });
+
+    try {
+      console.log({ variantId: item.product.variant.id, quantity: newQty });
+
+      const test = await updateCartList({
+        variantId: item.product.variant.id,
+        quantity: newQty,
+      });
+
+      console.log({ test });
+    } catch (error) {
+      console.error("Failed to update quantity:", error);
+      // Revert/Refetch on error
+      const res = await getCartList({ page: 1 });
+      setCartData(res);
+    }
   };
 
-  const handleDelete = (itemId: string) => {
+  const handeBulkDelete = async () => {
+    if (
+      confirm("Apakah Anda yakin ingin menghapus semua barang dari keranjang?")
+    ) {
+      const cartItems = cartData?.items.map((i) => i.product?.variant.id);
+      if (!cartItems) return;
+
+      // Optimistic Update
+      setCartData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          items: [],
+        };
+      });
+      setSelectedItems(new Set());
+
+      try {
+        await deleteCartList({ variantIds: cartItems });
+      } catch (error) {
+        console.error("Failed to delete items:", error);
+      }
+    }
+  };
+
+  const handleDelete = async (itemId: string) => {
+    const item = cartData?.items.find((i) => i.id === itemId);
+    if (!item || !item.product) return;
+
     if (
       confirm("Apakah Anda yakin ingin menghapus barang ini dari keranjang?")
     ) {
-      setCartData((prev) => ({
-        ...prev,
-        items: prev.items.filter((item) => item.id !== itemId),
-      }));
-      const newSelected = new Set(selectedItems);
-      newSelected.delete(itemId);
-      setSelectedItems(newSelected);
+      // Optimistic Update
+      setCartData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          items: prev.items.filter((i) => i.id !== itemId),
+        };
+      });
+      setSelectedItems((prev) => {
+        const newSelected = new Set(prev);
+        newSelected.delete(itemId);
+        return newSelected;
+      });
+
+      try {
+        await deleteCartList({ variantIds: [item.product.variant.id] });
+      } catch (error) {
+        console.error("Failed to delete item:", error);
+        // Revert/Refetch on error
+        const res = await getCartList({ page: 1 });
+        setCartData(res);
+      }
     }
   };
 
@@ -168,20 +138,25 @@ export default function CartPage() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedItems.size === cartData.items.length) {
+    if (!cartData) return;
+    if (selectedItems.size === cartData?.items.length) {
       setSelectedItems(new Set());
     } else {
-      const allIds = cartData.items.map((item) => item.id);
+      const allIds = cartData?.items.map((item) => item.id);
       setSelectedItems(new Set(allIds));
     }
+  };
+
+  const handleCheckout = () => {
+    alert(`Lanjut checkout dengan ${summary.totalItems} barang`);
   };
 
   const summary = useMemo(() => {
     let totalPrice = 0;
     let totalItems = 0;
 
-    cartData.items.forEach((item) => {
-      if (selectedItems.has(item.id)) {
+    cartData?.items.forEach((item) => {
+      if (selectedItems.has(item.id) && item.product) {
         totalPrice += item.product.variant.price * item.quantity;
         totalItems += item.quantity;
       }
@@ -189,6 +164,36 @@ export default function CartPage() {
 
     return { totalPrice, totalItems };
   }, [cartData, selectedItems]);
+
+  useEffect(() => {
+    const getCartData = async () => {
+      try {
+        setIsLoading(true);
+        const res = await getCartList({ page: 1 });
+        setCartData(res);
+      } catch (error) {
+        console.error("Failed to fetch cart data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getCartData();
+  }, []);
+
+  if (isLoading)
+    return (
+      <div className="flex h-screen items-center justify-center text-slate-500">
+        Loading...
+      </div>
+    );
+
+  if (!cartData)
+    return (
+      <div className="flex h-screen items-center justify-center text-slate-500">
+        Gagal memuat data keranjang.
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
@@ -228,7 +233,7 @@ export default function CartPage() {
                   </label>
                 </div>
                 <button
-                  onClick={() => alert("Menghapus item terpilih...")}
+                  onClick={() => handeBulkDelete()}
                   disabled={selectedItems.size === 0}
                   className="text-sm font-medium text-red-500 hover:text-red-700 disabled:opacity-30 disabled:hover:text-red-500"
                 >
@@ -242,109 +247,113 @@ export default function CartPage() {
                   Keranjang Anda kosong
                 </h3>
                 <p className="mt-1 text-slate-500">
-                  Yuk, isi dengan barang-barang impianmu!
+                  Yuk, isi dengan barang-barang kebutuhanmu!
                 </p>
               </div>
             )}
 
             {/* List Item */}
             <div className="space-y-4">
-              {cartData.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="group relative flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-green-100 hover:shadow-md md:flex-row md:items-start"
-                >
-                  {/* Checkbox */}
-                  <div className="absolute left-4 top-5 md:static md:mt-1">
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.has(item.id)}
-                      onChange={() => toggleSelection(item.id)}
-                      className="h-5 w-5 cursor-pointer rounded border-slate-300 text-green-600 focus:ring-green-500"
-                    />
-                  </div>
+              {cartData.items.length > 0 &&
+                cartData.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group relative flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-green-100 hover:shadow-md md:flex-row md:items-start"
+                  >
+                    {/* Checkbox */}
+                    <div className="absolute left-4 top-5 md:static md:mt-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.has(item.id)}
+                        onChange={() => toggleSelection(item.id)}
+                        className="h-5 w-5 cursor-pointer rounded border-slate-300 text-green-600 focus:ring-green-500"
+                      />
+                    </div>
 
-                  {/* Gambar Produk */}
-                  <div className="ml-8 md:ml-0 relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100 border border-slate-100">
-                    <Image
-                      src={
-                        item.product.variant.imageUrl ||
-                        "https://via.placeholder.com/150"
-                      }
-                      alt={item.product.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+                    {/* Gambar Produk */}
+                    <div className="ml-8 md:ml-0 relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100 border border-slate-100">
+                      <SafeImage
+                        src={
+                          item.product?.variant.imageUrl ||
+                          "https://via.placeholder.com/150"
+                        }
+                        alt={item.product?.name || "Product Image"}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
 
-                  {/* Detail Produk */}
-                  <div className="ml-8 md:ml-0 flex-1 flex flex-col justify-between">
-                    <div>
-                      {/* Nama Toko */}
-                      <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                        <Store size={14} className="text-green-500" />
-                        {item.product.sellerName}
+                    {/* Detail Produk */}
+                    <div className="ml-8 md:ml-0 flex-1 flex flex-col justify-between">
+                      <div>
+                        {/* Nama Toko */}
+                        <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                          <Store size={14} className="text-green-500" />
+                          {item.product?.sellerName}
+                        </div>
+
+                        {/* Nama Produk */}
+                        <h3 className="text-base font-semibold text-slate-800 line-clamp-2 leading-snug">
+                          {item.product?.name}
+                        </h3>
+
+                        {/* Stok Info */}
+                        <p className="mt-1 text-xs text-slate-400">
+                          Sisa stok: {item.product?.variant.stock}
+                        </p>
                       </div>
 
-                      {/* Nama Produk */}
-                      <h3 className="text-base font-semibold text-slate-800 line-clamp-2 leading-snug">
-                        {item.product.name}
-                      </h3>
-
-                      {/* Stok Info */}
-                      <p className="mt-1 text-xs text-slate-400">
-                        Sisa stok: {item.product.variant.stock}
-                      </p>
-                    </div>
-
-                    {/* Harga Mobile (muncul di bawah nama saat layar kecil) */}
-                    <div className="mt-2 block md:hidden font-bold text-green-600">
-                      {formatRupiah(item.product.variant.price)}
-                    </div>
-                  </div>
-
-                  {/* Kolom Kanan: Harga & Kontrol (Desktop) */}
-                  <div className="flex flex-row items-center justify-between gap-4 md:flex-col md:items-end md:justify-start pl-8 md:pl-0">
-                    {/* Harga Desktop */}
-                    <div className="hidden text-right md:block">
-                      <div className="text-lg font-bold text-slate-900">
-                        {formatRupiah(item.product.variant.price)}
+                      {/* Harga Mobile (muncul di bawah nama saat layar kecil) */}
+                      <div className="mt-2 block md:hidden font-bold text-green-600">
+                        {formatIDR(item.product?.variant.price ?? 0)}
                       </div>
                     </div>
 
-                    {/* Kontrol Kuantitas & Hapus */}
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="text-slate-400 hover:text-red-500 transition-colors"
-                        title="Hapus Barang"
-                      >
-                        <Trash2 size={20} />
-                      </button>
+                    {/* Kolom Kanan: Harga & Kontrol (Desktop) */}
+                    <div className="flex flex-row items-center justify-between gap-4 md:flex-col md:items-end md:justify-start pl-8 md:pl-0">
+                      {/* Harga Desktop */}
+                      <div className="hidden text-right md:block">
+                        <div className="text-lg font-bold text-slate-900">
+                          {formatIDR(item.product?.variant.price ?? 0)}
+                        </div>
+                      </div>
 
-                      <div className="flex h-9 items-center rounded-full border border-slate-300 bg-white">
+                      {/* Kontrol Kuantitas & Hapus */}
+                      <div className="flex items-center gap-4">
                         <button
-                          onClick={() => handleQuantityChange(item.id, -1)}
-                          disabled={item.quantity <= 1}
-                          className="flex h-full w-9 items-center justify-center rounded-l-full text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+                          onClick={() => handleDelete(item.id)}
+                          className="text-slate-400 hover:text-red-500 transition-colors"
+                          title="Hapus Barang"
                         >
-                          <Minus size={14} strokeWidth={3} />
+                          <Trash2 size={20} />
                         </button>
-                        <span className="min-w-[2.5rem] text-center text-sm font-semibold text-slate-700">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => handleQuantityChange(item.id, 1)}
-                          disabled={item.quantity >= item.product.variant.stock}
-                          className="flex h-full w-9 items-center justify-center rounded-r-full text-slate-600 hover:bg-slate-100 disabled:opacity-30"
-                        >
-                          <Plus size={14} strokeWidth={3} />
-                        </button>
+
+                        <div className="flex h-9 items-center rounded-full border border-slate-300 bg-white">
+                          <button
+                            onClick={() => handleQuantityChange(item.id, -1)}
+                            disabled={item.quantity <= 1}
+                            className="flex h-full w-9 items-center justify-center rounded-l-full text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+                          >
+                            <Minus size={14} strokeWidth={3} />
+                          </button>
+                          <span className="min-w-[2.5rem] text-center text-sm font-semibold text-slate-700">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => handleQuantityChange(item.id, 1)}
+                            disabled={
+                              !item.product ||
+                              item.quantity >= item.product.variant.stock
+                            }
+                            className="flex h-full w-9 items-center justify-center rounded-r-full text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+                          >
+                            <Plus size={14} strokeWidth={3} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
 
             {/* Pagination */}
@@ -383,7 +392,7 @@ export default function CartPage() {
                   <div className="flex justify-between text-sm text-slate-600">
                     <span>Total Barang ({summary.totalItems})</span>
                     <span className="font-medium text-slate-900">
-                      {formatRupiah(summary.totalPrice)}
+                      {formatIDR(summary.totalPrice)}
                     </span>
                   </div>
                   {/* Contoh Diskon (Hardcoded untuk UI) */}
@@ -398,15 +407,13 @@ export default function CartPage() {
                     Total Harga
                   </span>
                   <span className="text-xl font-bold text-green-600">
-                    {formatRupiah(summary.totalPrice)}
+                    {formatIDR(summary.totalPrice)}
                   </span>
                 </div>
 
                 <button
                   disabled={selectedItems.size === 0}
-                  onClick={() =>
-                    alert(`Lanjut checkout dengan ${summary.totalItems} barang`)
-                  }
+                  onClick={handleCheckout}
                   className="mt-6 w-full rounded-xl bg-green-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-green-200 transition-all hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-xl disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none disabled:translate-y-0"
                 >
                   Beli ({selectedItems.size})
@@ -426,7 +433,7 @@ export default function CartPage() {
       {/* Mobile Fixed Bottom Bar */}
       <MobileCheckout
         total={summary.totalPrice}
-        onCheckout={() => {}}
+        onCheckout={handleCheckout}
         selectedItems={selectedItems.size}
       />
     </div>

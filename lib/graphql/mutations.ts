@@ -1,18 +1,3 @@
-export const ADD_TO_CART = `
- mutation AddToCart($variantId:ID!, $quantity:Int!){
-  addToCart(input:
-    {
-      variantId:$variantId,
-      quantity:$quantity
-    })
-  {
-    success message cartItem {
-      id
-      userId
-    }
-  }
-}
-`;
 export const ADD_CATEGORY = `
   mutation AddCategory($name: String!) {
     addCategory(name: $name) {

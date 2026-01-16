@@ -1,4 +1,5 @@
 import { AddressType } from "./address";
+import { PageInfo } from "./pagination";
 import { User } from "./user";
 
 enum CheckoutSessionStatus {
@@ -116,13 +117,6 @@ export interface ShippingAddress {
 }
 
 // types.ts
-export interface PageInfo {
-  totalItems: number;
-  totalPages: number;
-  page: number;
-  limit: number;
-  hasNextPage: boolean;
-}
 
 export interface OrderPricing {
   currency: string;

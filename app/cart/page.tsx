@@ -178,7 +178,9 @@ export default function CartPage() {
       if (!cartData || cartData.items.length === 0) return;
       setIsCheckoutLoading(true);
 
-      const validItems = cartData.items.filter((item) => item.product);
+      const validItems = cartData.items.filter(
+        (item) => item.product && selectedItems.has(item.id),
+      );
 
       const checkOutIds = validItems.map((item) => {
         return {

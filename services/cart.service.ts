@@ -5,7 +5,7 @@ import {
   UPDATE_CART_LIST,
 } from "@/lib/graphql/mutation/cart.mutation";
 
-import { GET_CART_LIST } from "@/lib/graphql/query/cart.query";
+import { GET_CART_COUNT, GET_CART_LIST } from "@/lib/graphql/query/cart.query";
 import {
   AddToCartResponseType,
   CartItemType,
@@ -14,13 +14,6 @@ import {
   CartSortInput,
 } from "@/types/cart";
 
-/* ----------------------------------
- * Category Mutations
- * ---------------------------------- */
-
-/**
- * mutation AddCategory($name: String!)
- */
 export async function addToCart({
   variantId,
   quantity,
@@ -83,6 +76,17 @@ export async function deleteCartList({
     {
       variables: { variantIds },
       cache: "no-store",
-    }
+    },
   ).then((res) => res.removeFromCart);
+}
+
+export async function getCartCount({
+  cookieHeader,
+}: {
+  cookieHeader?: string;
+}) {
+  return graphqlFetch<{}, { myCartCount: number }>(GET_CART_COUNT, {
+    cache: "no-store",
+    cookieHeader: cookieHeader,
+  });
 }

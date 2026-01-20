@@ -6,3 +6,4 @@ export * from "./filter";
 export * from "./sort";
 export * from "./order";
 export * from "./address";
+export * from "./user";

@@ -26,3 +26,8 @@ export const GET_CART_LIST = `
   }
 }
 `;
+
+export const GET_CART_COUNT = `
+query MyCartCount{
+ myCartCount 
+}`;

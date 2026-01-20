@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { login } from "@/services/auth.service";
 import { GoogleButonRegister } from "@/components/GoogleButon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,56 +14,12 @@ import { useRouter } from "next/navigation";
 // ----------------------------
 // ZOD Validation
 // ----------------------------
-const RegisterSchema = z.object({
-  email: z.string().email("Email tidak valid"),
-  password: z
-    .string()
-    .min(8, "Minimal 8 karakter")
-    .regex(/[A-Z]/, "Harus ada huruf kapital")
-    .regex(/[0-9]/, "Harus ada angka"),
+const LoginSchema = z.object({
+  email: z.email("Email tidak valid"),
+  password: z.string().min(1, "Password wajib diisi"),
 });
 
-type RegisterForm = z.infer<typeof RegisterSchema>;
-
-// ----------------------------
-// GRAPHQL MUTATION
-// ----------------------------
-async function loginUser({ email, password }: RegisterForm) {
-  const query = `
-    mutation Login($email: String!, $password: String!) {
-      login(input: { email: $email, password: $password }) {
-        token
-        user { id role }
-      }
-    }
-  `;
-
-  const body = JSON.stringify({
-    query,
-    variables: { email, password },
-  });
-
-  const res = await fetch("http://localhost:8080/query", {
-    credentials: "include",
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body,
-  });
-
-  // Network-level error
-  if (!res.ok) {
-    throw new Error("Gagal terhubung ke server");
-  }
-
-  const json = await res.json();
-
-  // GraphQL-level error
-  if (json.errors) {
-    throw new Error(json.errors[0]?.message || "Terjadi kesalahan server");
-  }
-
-  return json.data.register;
-}
+type LoginFormValues = z.infer<typeof LoginSchema>;
 
 // ----------------------------
 // Page Component
@@ -76,19 +33,22 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors, isValid },
-  } = useForm<RegisterForm>({
-    resolver: zodResolver(RegisterSchema),
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(LoginSchema),
     mode: "onChange",
   });
 
-  const onSubmit = async (data: RegisterForm) => {
-    if (loading || !isValid) return;
+  const onSubmit = async (data: LoginFormValues) => {
+    if (loading) return;
 
     setLoading(true);
     setFormError(null);
 
     try {
-      const result = await loginUser(data);
+      const result = await login({
+        email: data.email,
+        password: data.password,
+      });
 
       // Store token if needed
       if (result?.token) {
@@ -97,9 +57,7 @@ export default function LoginPage() {
 
       router.push("/");
     } catch (err: any) {
-      if (err.message.includes("Failed to fetch")) {
-        setFormError("Gagal terhubung ke server");
-      } else if (err.message === "invalid credentials") {
+      if (err.message === "invalid credentials") {
         setFormError("Email atau password salah");
       } else {
         setFormError("Terjadi kesalahan");
@@ -110,8 +68,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center md:p-4">
-      <div className="w-screen flex flex-col min-h-screen md:min-h-fit md:max-w-md bg-white rounded-2xl shadow-md p-3 md:p-8">
+    <div className="w-full flex items-center justify-center">
+      <div className="w-full flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
         {/* Title */}
         <h1 className="text-2xl font-semibold mb-6">Masuk ke warimas</h1>
 
@@ -142,7 +100,7 @@ export default function LoginPage() {
             <Input
               type="password"
               {...register("password")}
-              placeholder="Password minimal 8 karakter"
+              placeholder="Password"
               className="h-12 text-base rounded-xl border-gray-300 focus:ring-2 focus:ring-[#6ab880]"
             />
             {errors.password && (
@@ -155,7 +113,7 @@ export default function LoginPage() {
           {/* Submit button */}
           <Button
             type="submit"
-            disabled={!isValid || loading}
+            disabled={loading}
             className="w-full h-12 text-base font-semibold rounded-xl bg-[#6ab880] hover:bg-[#82cb97] disabled:bg-gray-300"
           >
             {loading ? "Memproses..." : "Login"}
@@ -187,7 +145,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <footer className="absolute md:static bottom-2 left-2 right-2 text-center mt-10">
+        <footer className="text-center mt-10">
           <p className="text-[11px] text-gray-500">
             Dengan memakai layanan kami, kamu menyetujui Kebijakan Privasi dan
             Syarat & Ketentuan Warimas.

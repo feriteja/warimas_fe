@@ -23,6 +23,8 @@ import { getCartList } from "@/services/cart.service";
 import NavIcon from "./NavIcon";
 // import { useCartStore } from "./cart.store";
 import { useCart } from "@/lib/store/cart";
+import { getProfile } from "@/services/user.service";
+import { User as UserType } from "@/types";
 
 export default function Navbar() {
   const router = useRouter();
@@ -36,6 +38,7 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchProduct, setSearchProduct] = useState<string>("");
   const { items, setItems } = useCart();
+  const [user, setUser] = useState<UserType | null>(null);
   const cartCount = items.length;
   // Sync search input with URL query param
   useEffect(() => {
@@ -88,6 +91,9 @@ export default function Navbar() {
 
   useEffect(() => {
     if (isLoggedIn) {
+      getProfile()
+        .then((res) => setUser(res))
+        .catch((err) => console.error(err));
       getCartList({ limit: 100 })
         .then((res) => {
           // Map backend response to store CartItem type
@@ -105,6 +111,7 @@ export default function Navbar() {
         .catch((err) => console.error(err));
     } else {
       setItems([]);
+      setUser(null);
     }
   }, [isLoggedIn, pathname, setItems]);
 
@@ -232,9 +239,8 @@ export default function Navbar() {
                       </div>
                       <div className="hidden text-left lg:block">
                         <span className="text-sm font-bold text-gray-700">
-                          John Doe
+                          {user?.fullName.split(" ")[0]}
                         </span>{" "}
-                        {/* Replace with dynamic name */}
                       </div>
                       <ChevronDown
                         size={14}
@@ -252,7 +258,7 @@ export default function Navbar() {
                             Akun Terdaftar
                           </p>
                           <p className="text-sm font-bold text-gray-800 truncate">
-                            johndoe@email.com
+                            {user?.phone}
                           </p>
                         </div>
 
@@ -335,7 +341,7 @@ export default function Navbar() {
                           Selamat Datang,
                         </p>
                         <p className="text-base font-extrabold text-gray-800">
-                          John Doe
+                          {user?.fullName.split(" ")[0]}
                         </p>
                       </div>
                     </div>

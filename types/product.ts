@@ -40,8 +40,9 @@ export interface ProductList {
 }
 
 export interface ProductsHome {
-  CategoryName: string;
-  Products: ProductType[];
+  categoryName: string;
+  categorySlug: string;
+  products: ProductType[];
 }
 
 export interface ProductsHomeListType {

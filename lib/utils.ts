@@ -20,7 +20,7 @@ export function capitalizeFirstLetter(str: string) {
 export function updateQuery(
   router: AppRouterInstance,
   params: ReadonlyURLSearchParams,
-  next: Record<string, string | number | undefined>
+  next: Record<string, string | number | undefined>,
 ) {
   const newParams = new URLSearchParams(params.toString());
 
@@ -33,19 +33,19 @@ export function updateQuery(
 }
 
 export const mapProductFiltersToAPI = (
-  filters: FilterState
+  filters: FilterState,
 ): ProductFilterInput => ({
   categoryId: filters.categoryId || undefined,
   search: filters.search || undefined,
   status: filters.status || undefined,
   sellerName: filters.sellerName || undefined,
   inStock: filters.inStock,
-  minPrice: filters.minPrice?.toString(),
-  maxPrice: filters.maxPrice?.toString(),
+  minPrice: filters.minPrice,
+  maxPrice: filters.maxPrice,
 });
 
 export const mapProductSortToAPI = (
-  sortBy: "name" | "createdAt"
+  sortBy: "name" | "createdAt",
 ): ProductSortInput => ({
   field:
     sortBy === "name" ? ProductSortField.NAME : ProductSortField.CREATED_AT,
@@ -66,3 +66,12 @@ export const formatDate = (date: Date) => {
     timeStyle: "short",
   }).format(date);
 };
+
+export function slugToName(slug: string) {
+  if (!slug) return "";
+
+  return slug
+    .replace(/[-_]+/g, " ") // replace dashes/underscores with space
+    .toLowerCase() // normalize case
+    .replace(/\b\w/g, (c) => c.toUpperCase()); // capitalize each word
+}

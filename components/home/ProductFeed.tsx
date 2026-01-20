@@ -1,10 +1,12 @@
 import { getProductHomeList } from "@/services/product.service";
 import ProductCard from "./ProductCard";
 import RetrySection from "../RetrySection";
+import Link from "next/link";
 
 export default async function ProductFeed() {
   try {
     const data = await getProductHomeList();
+    console.log("🚀 ~ ProductFeed ~ data:", data);
 
     if (!data || !data.productsHome || data.productsHome.length === 0) {
       return (
@@ -15,18 +17,21 @@ export default async function ProductFeed() {
     return (
       <div className="space-y-12">
         {data.productsHome.map((category) => (
-          <section key={category.CategoryName} className="space-y-4">
+          <section key={category.categoryName} className="space-y-4">
             <div className="flex justify-between items-end px-1">
               <h2 className="text-xl font-bold text-gray-900 border-l-4 border-emerald-500 pl-3">
-                {category.CategoryName}
+                {category.categoryName}
               </h2>
-              <a href="#" className="text-sm text-emerald-600 hover:underline">
+              <Link
+                href={`/search?cs=${category.categorySlug}`}
+                className="text-sm text-emerald-600 hover:underline"
+              >
                 Lihat Semua
-              </a>
+              </Link>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {category.Products.map((product) => (
+              {category.products.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>

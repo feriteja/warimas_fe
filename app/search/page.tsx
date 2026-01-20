@@ -23,8 +23,9 @@ export default async function SearchPage({
       : undefined;
   const categoryId =
     typeof searchParams.cat === "string" ? searchParams.cat : undefined;
+  const categorySlug =
+    typeof searchParams.cs === "string" ? searchParams.cs : undefined;
   const inStock = searchParams.stock === "true";
-
   const sortField =
     typeof searchParams.sortField === "string"
       ? searchParams.sortField
@@ -38,6 +39,7 @@ export default async function SearchPage({
     maxPrice,
     categoryId,
     inStock,
+    categorySlug,
   };
 
   const sort = {

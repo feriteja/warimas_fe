@@ -48,7 +48,7 @@ query PaymentOrderInfo($externalId: String!) {
     totalAmount
     currency
     shippingAddress{name receiverName phone address1 city province postalCode} 
-    payment{method bank instructions paymentCode instructions referenceId}
+    payment{method bank instructions paymentCode instructions referenceId invoiceURL}
   }
 }`;
 

@@ -3,12 +3,13 @@ import { formatIDR } from "@/lib/utils";
 import { getAddressList } from "@/services/address.service";
 import { getSessionData } from "@/services/order.service";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import AddressCard from "./AddressCard";
 import ConfirmButton from "./ConfirmButton";
 import PaymentMethodCard from "./PaymentMethodCard";
 
 interface Props {
-  params: { checkoutId: string };
+  params: Promise<{ checkoutId: string }>;
 }
 
 // ... imports
@@ -17,13 +18,28 @@ export default async function CheckoutPage({ params }: Props) {
   const { checkoutId } = await params;
   const cookieStore = await cookies();
 
-  const [sessionData, addressList] = await Promise.all([
+  const [sessionData, addressListRaw] = await Promise.all([
     getSessionData({
       externalId: checkoutId,
       cookieHeader: cookieStore.toString(),
     }),
     getAddressList({ cookieHeader: cookieStore.toString() }),
-  ]);
+  ]).catch((error) => {
+    console.error("Error fetching checkout data:", error);
+    if (
+      error instanceof Error &&
+      error.message.includes("checkout session not found")
+    ) {
+      notFound();
+    }
+    throw error;
+  });
+
+  if (!sessionData) {
+    notFound();
+  }
+
+  const addressList = addressListRaw || [];
 
   const subtotal = sessionData.items.reduce(
     (sum, item) => sum + item.price * item.quantity,

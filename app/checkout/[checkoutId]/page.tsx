@@ -3,9 +3,9 @@ import { formatIDR } from "@/lib/utils";
 import { getAddressList } from "@/services/address.service";
 import { getSessionData } from "@/services/order.service";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import AddressCard from "./AddressCard";
 import ConfirmButton from "./ConfirmButton";
+import PaymentMethodCard from "./PaymentMethodCard";
 
 interface Props {
   params: { checkoutId: string };
@@ -27,7 +27,7 @@ export default async function CheckoutPage({ params }: Props) {
 
   const subtotal = sessionData.items.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
   const tax = Math.round(subtotal * 0.11);
   const totalAmount = subtotal + tax + sessionData.shippingFee;
@@ -51,9 +51,15 @@ export default async function CheckoutPage({ params }: Props) {
               status={sessionData.status}
               addressList={addressList}
               selectedAddress={addressList.find(
-                (a) => a.id === sessionData.addressId
+                (a) => a.id === sessionData.addressId,
               )}
               totalAddress={addressList.length}
+            />
+
+            <PaymentMethodCard
+              selectedMethod={sessionData.paymentMethod}
+              externalId={checkoutId}
+              status={sessionData.status}
             />
 
             <section className="rounded-3xl bg-white p-8 shadow-sm border border-gray-100">

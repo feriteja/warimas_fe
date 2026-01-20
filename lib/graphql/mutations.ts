@@ -56,6 +56,13 @@ mutation UpdateSessionAddress($input: UpdateSessionAddressInput!){
   }
 }`;
 
+export const UPDATE_SESSION_PAYMENT_METHOD = `
+mutation UpdateSessionPayment($input: UpdateSessionPaymentMethodInput!){
+  updateSessionPaymentMethod(input:$input){
+    success
+  }
+}`;
+
 export const CONFIRM_CHECKOUT_SESSION = `
 mutation ConfirmCheckoutSession($input: ConfirmCheckoutSessionInput!){
   confirmCheckoutSession(input:$input){

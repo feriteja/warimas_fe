@@ -17,7 +17,14 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import BottomNavbar from "./BottomNav";
+// import { getCartCount } from "@/services/cart.service";
+import { getCartList } from "@/services/cart.service";
+
 import NavIcon from "./NavIcon";
+// import { useCartStore } from "./cart.store";
+import { useCart } from "@/lib/store/cart";
+import { getProfile } from "@/services/user.service";
+import { User as UserType } from "@/types";
 
 export default function Navbar() {
   const router = useRouter();
@@ -30,7 +37,9 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchProduct, setSearchProduct] = useState<string>("");
-
+  const { items, setItems } = useCart();
+  const [user, setUser] = useState<UserType | null>(null);
+  const cartCount = items.length;
   // Sync search input with URL query param
   useEffect(() => {
     const q = searchParams.get("q");
@@ -79,6 +88,32 @@ export default function Navbar() {
       cancelled = true;
     };
   }, [pathname]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      getProfile()
+        .then((res) => setUser(res))
+        .catch((err) => console.error(err));
+      getCartList({ limit: 100 })
+        .then((res) => {
+          // Map backend response to store CartItem type
+          const mappedItems = res.items.map((item: any) => ({
+            variantId: item.product.variant?.id || item.id,
+            productId: item.product.id,
+            productName: item.product.name,
+            variantName: "",
+            price: item.product.variant?.price || 0,
+            quantity: item.quantity,
+            quantityType: "",
+          }));
+          setItems(mappedItems);
+        })
+        .catch((err) => console.error(err));
+    } else {
+      setItems([]);
+      setUser(null);
+    }
+  }, [isLoggedIn, pathname, setItems]);
 
   const goToCart = () => {
     try {
@@ -169,7 +204,7 @@ export default function Navbar() {
               <div className="flex items-center gap-0.5 sm:gap-1 sm:border-r sm:border-gray-200 sm:pr-2 sm:mr-2">
                 <NavIcon
                   icon={<ShoppingCart size={22} />}
-                  count={3}
+                  count={cartCount}
                   onClick={() => goToCart()}
                   label="Keranjang"
                 />
@@ -204,9 +239,8 @@ export default function Navbar() {
                       </div>
                       <div className="hidden text-left lg:block">
                         <span className="text-sm font-bold text-gray-700">
-                          John Doe
+                          {user?.fullName.split(" ")[0]}
                         </span>{" "}
-                        {/* Replace with dynamic name */}
                       </div>
                       <ChevronDown
                         size={14}
@@ -224,7 +258,7 @@ export default function Navbar() {
                             Akun Terdaftar
                           </p>
                           <p className="text-sm font-bold text-gray-800 truncate">
-                            johndoe@email.com
+                            {user?.phone}
                           </p>
                         </div>
 
@@ -307,7 +341,7 @@ export default function Navbar() {
                           Selamat Datang,
                         </p>
                         <p className="text-base font-extrabold text-gray-800">
-                          John Doe
+                          {user?.fullName.split(" ")[0]}
                         </p>
                       </div>
                     </div>

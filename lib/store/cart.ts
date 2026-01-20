@@ -17,6 +17,7 @@ type CartState = {
   removeItem: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
   clearCart: () => void;
+  setItems: (items: CartItem[]) => void;
 };
 
 export const useCart = create<CartState>((set) => ({
@@ -29,7 +30,7 @@ export const useCart = create<CartState>((set) => ({
           items: state.items.map((i) =>
             i.variantId === item.variantId
               ? { ...i, quantity: i.quantity + item.quantity }
-              : i
+              : i,
           ),
         };
       }
@@ -42,8 +43,9 @@ export const useCart = create<CartState>((set) => ({
   updateQuantity: (variantId, quantity) =>
     set((state) => ({
       items: state.items.map((i) =>
-        i.variantId === variantId ? { ...i, quantity } : i
+        i.variantId === variantId ? { ...i, quantity } : i,
       ),
     })),
   clearCart: () => set({ items: [] }),
+  setItems: (items) => set({ items }),
 }));

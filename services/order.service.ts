@@ -3,6 +3,7 @@ import {
   CONFIRM_CHECKOUT_SESSION,
   CREATE_SESSION_CHECKOUT,
   UPDATE_SESSION_ADDRESS,
+  UPDATE_SESSION_PAYMENT_METHOD,
 } from "@/lib/graphql/mutations";
 import {
   GET_CHECKOUT_SESSION_DATA,
@@ -22,11 +23,12 @@ import {
   OrderPaginationInput,
   OrderSortInput,
   OrderStatus,
+  PaymentMethod,
   PaymentOrderInfoResponse,
 } from "@/types";
 
 export async function createCheckoutSession(
-  input: CreateCheckoutSessionInput
+  input: CreateCheckoutSessionInput,
 ): Promise<CheckoutSessionResponse> {
   const res = await graphqlFetch<
     { createCheckoutSession: CheckoutSessionResponse },
@@ -52,11 +54,11 @@ export async function getSessionData({
       cache: "no-store",
       variables: { externalId },
       cookieHeader: cookieHeader,
-    }
+    },
   ).then((res) => res.checkoutSession);
 }
 
-export async function updateCheckoutSessionData(input: {
+export async function updateAddressCheckoutSessionData(input: {
   externalId: string;
   addressId: string;
 }): Promise<{ success: boolean }> {
@@ -67,6 +69,23 @@ export async function updateCheckoutSessionData(input: {
     cache: "no-store",
     variables: { input },
   }).then((res) => res.updateSessionAddress);
+}
+
+export async function updatePaymentMethodeCheckoutSessionData(
+  input: {
+    externalId: string;
+    paymentMethod: PaymentMethod;
+  },
+  cookies?: string,
+): Promise<{ success: boolean }> {
+  return graphqlFetch<
+    { updateSessionPaymentMethod: { success: boolean } },
+    { input: { externalId: string; paymentMethod: string } }
+  >(UPDATE_SESSION_PAYMENT_METHOD, {
+    cache: "no-store",
+    variables: { input },
+    cookieHeader: cookies,
+  }).then((res) => res.updateSessionPaymentMethod);
 }
 
 export async function confirmCheckoutSession({
@@ -95,7 +114,7 @@ export async function getPaymentOrderInfo({
       cache: "force-cache",
       variables: { externalId },
       cookieHeader: cookieHeader,
-    }
+    },
   ).then((res) => res.paymentOrderInfo);
 }
 

@@ -2,6 +2,34 @@ import { AddressType } from "./address";
 import { PageInfo } from "./pagination";
 import { User } from "./user";
 
+export enum PaymentMethod {
+  ChannelIndomaret = "INDOMARET",
+  ChannelAlfamart = "ALFAMART",
+
+  // Virtual Account
+  MethodBCAVA = "BCA_VIRTUAL_ACCOUNT",
+  MethodBNIVA = "BNI_VIRTUAL_ACCOUNT",
+  MethodMandiriVA = "MANDIRI_VIRTUAL_ACCOUNT",
+
+  // QRIS
+  MethodQRIS = "QRIS",
+  MethodCOD = "COD",
+
+  // E-Wallet
+  MethodOVO = "OVO",
+  MethodDANA = "DANA",
+  MethodLINKAJA = "LINKAJA",
+  MethodSHOPEE = "SHOPEEPAY",
+  MethodGOPAY = "GOPAY",
+
+  // Retail Outlet
+  MethodAlfamart = "ALFAMART",
+  MethodIndomaret = "INDOMARET",
+
+  // Credit Card
+  MethodCreditCard = "CARDS",
+}
+
 enum CheckoutSessionStatus {
   PENDING = "PENDING",
   COMPLETED = "PAID",
@@ -39,6 +67,7 @@ export interface CheckoutSessionType {
   expiresAt: string;
   createdAt: string;
   addressId?: string;
+  paymentMethod?: PaymentMethod;
   items: CheckoutSessionItemType[];
   subtotal: number;
   tax: number;

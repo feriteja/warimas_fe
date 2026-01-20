@@ -35,7 +35,7 @@ query Subcategory ($categoryId:ID!,$filter:String ,$limit:Int, $page:Int  ) {
 export const GET_CHECKOUT_SESSION_DATA = `
 query GetSessionData ($externalId: String!) {
   checkoutSession (externalId: $externalId) {
-    id externalId status expiresAt createdAt addressId shippingFee
+    id externalId status expiresAt createdAt addressId shippingFee paymentMethod
     items { id variantName productName quantity quantityType price}
   }
 }`;

@@ -2,7 +2,7 @@
 
 import { createAddress } from "@/services/address.service";
 // import { createAddress } from "@/services/address.service";
-import { updateCheckoutSessionData } from "@/services/order.service";
+import { updateAddressCheckoutSessionData } from "@/services/order.service";
 import { AddressType, CreateAddressPayload } from "@/types";
 import { CheckCircle2, ChevronLeft, Loader2, MapPin, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -26,7 +26,7 @@ export default function AddressCard({
 
   const handleSelect = async (address: AddressType) => {
     try {
-      await updateCheckoutSessionData({
+      await updateAddressCheckoutSessionData({
         addressId: address.id,
         externalId: params.checkoutId,
       });

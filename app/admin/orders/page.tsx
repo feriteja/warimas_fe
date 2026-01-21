@@ -27,6 +27,7 @@ import {
 } from "@/components/orders/components/client";
 import Link from "next/link";
 import ActionButton from "@/components/orders/ActionButton";
+import { Suspense } from "react";
 
 const LIMIT = 10;
 
@@ -91,43 +92,14 @@ export default async function AdminOrdersPage({
 }) {
   const cookieStore = await cookies();
 
-  // 1. Await the searchParams object FIRST
+  // 1. Await the searchParams object
   const params = await searchParams;
 
-  // 2. Parse Query Params from the resolved object
-  // Note: Number(undefined) is NaN, and NaN || 1 is 1. This is safe.
-  const page = Number(params.page) || 1;
+  // 2. Parse Query Params for initial filter state
   const status = params.status || "ALL";
   const search = params.search || "";
-  const sortDirection = params.sortDirection || "DESC";
-  const sortField = params.sortField || "CREATED_AT";
-  // 2. Prepare Filters
-  const filter: OrderFilterInput = {};
-  if (status !== "ALL") {
-    filter.status = status as OrderStatus;
-  }
-  if (search) {
-    // Assuming the API supports filtering by buyer name via this field
-    filter.search = search;
-  }
 
-  // 3. Fetch Data
-  let orders: any[] = [];
-  let totalPages = 1;
-  let error = null;
-
-  try {
-    const data = await fetchOrders({
-      cookieHeader: cookieStore.toString(),
-      filter,
-      pagination: { page, limit: LIMIT },
-      sort: { direction: sortDirection, field: sortField },
-    });
-    orders = data.items;
-    totalPages = data.pageInfo.totalPages;
-  } catch (err) {
-    error = err;
-  }
+  const suspenseKey = JSON.stringify(params);
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -148,34 +120,113 @@ export default async function AdminOrdersPage({
         <div className="space-y-6">
           <OrderFilters initialSearch={search} initialStatus={status} />
 
-          {/* Order List */}
-          <div className="space-y-4">
-            {error ? (
-              <div className="flex flex-col items-center justify-center py-12 bg-white rounded-2xl border border-red-100 shadow-sm text-center p-6">
-                <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4">
-                  <AlertCircle className="text-red-600" size={24} />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Gagal memuat data
-                </h3>
-                <p className="text-gray-500 mt-1 max-w-md">
-                  Terjadi kesalahan saat mengambil data pesanan. Silakan coba
-                  muat ulang halaman.
-                </p>
-              </div>
-            ) : orders.length === 0 ? (
-              <EmptyState />
-            ) : (
-              orders.map((order) => <OrderItem key={order.id} order={order} />)
-            )}
-          </div>
-
-          {/* Pagination Controls */}
-          {!error && orders.length > 0 && (
-            <OrderPagination page={page} totalPages={totalPages} />
-          )}
+          <Suspense key={suspenseKey} fallback={<AdminOrderListSkeleton />}>
+            <AdminOrderListContent
+              params={params}
+              cookieHeader={cookieStore.toString()}
+            />
+          </Suspense>
         </div>
       </div>
+    </div>
+  );
+}
+
+async function AdminOrderListContent({
+  params,
+  cookieHeader,
+}: {
+  params: {
+    page?: string;
+    status?: string;
+    search?: string;
+    sortDirection?: "ASC" | "DESC";
+    sortField?: "CREATED_AT" | "TOTAL";
+  };
+  cookieHeader: string;
+}) {
+  const page = Number(params.page) || 1;
+  const status = params.status || "ALL";
+  const search = params.search || "";
+  const sortDirection = params.sortDirection || "DESC";
+  const sortField = params.sortField || "CREATED_AT";
+
+  const filter: OrderFilterInput = {};
+  if (status !== "ALL") {
+    filter.status = status as OrderStatus;
+  }
+  if (search) {
+    filter.search = search;
+  }
+
+  let orders: any[] = [];
+  let totalPages = 1;
+  let error = null;
+
+  try {
+    const data = await fetchOrders({
+      cookieHeader,
+      filter,
+      pagination: { page, limit: LIMIT },
+      sort: { direction: sortDirection, field: sortField },
+    });
+    orders = data.items;
+    totalPages = data.pageInfo.totalPages;
+  } catch (err) {
+    error = err;
+  }
+
+  return (
+    <>
+      <div className="space-y-4">
+        {error ? (
+          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-2xl border border-red-100 shadow-sm text-center p-6">
+            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle className="text-red-600" size={24} />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Gagal memuat data
+            </h3>
+            <p className="text-gray-500 mt-1 max-w-md">
+              Terjadi kesalahan saat mengambil data pesanan. Silakan coba muat
+              ulang halaman.
+            </p>
+          </div>
+        ) : orders.length === 0 ? (
+          <EmptyState />
+        ) : (
+          orders.map((order) => <OrderItem key={order.id} order={order} />)
+        )}
+      </div>
+
+      {!error && orders.length > 0 && (
+        <OrderPagination page={page} totalPages={totalPages} />
+      )}
+    </>
+  );
+}
+
+function AdminOrderListSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="bg-white border border-gray-200 rounded-xl h-64"
+        >
+          <div className="px-6 py-4 border-b border-gray-100 h-16 bg-gray-50/30"></div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div className="md:col-span-4 space-y-3">
+              <div className="h-4 w-24 bg-gray-200 rounded"></div>
+              <div className="h-20 bg-gray-200 rounded"></div>
+            </div>
+            <div className="md:col-span-5 space-y-3">
+              <div className="h-4 w-24 bg-gray-200 rounded"></div>
+              <div className="h-20 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

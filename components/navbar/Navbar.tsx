@@ -19,12 +19,14 @@ import { useEffect, useRef, useState } from "react";
 import BottomNavbar from "./BottomNav";
 // import { getCartCount } from "@/services/cart.service";
 import { getCartList } from "@/services/cart.service";
+import { logout } from "@/services/auth.service";
 
 import NavIcon from "./NavIcon";
 // import { useCartStore } from "./cart.store";
 import { useCart } from "@/lib/store/cart";
 import { getProfile } from "@/services/user.service";
 import { User as UserType } from "@/types";
+import { SafeImage } from "../SafeImage";
 
 export default function Navbar() {
   const router = useRouter();
@@ -49,6 +51,19 @@ export default function Navbar() {
       setSearchProduct("");
     }
   }, [searchParams]);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsLoggedIn(false);
+      setUser(null);
+      setItems([]);
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   // Scroll effect for professional "floating" feel
   useEffect(() => {
@@ -227,13 +242,22 @@ export default function Navbar() {
             : "border-gray-200 hover:bg-gray-50"
         }`}
                     >
-                      <div className="h-8 w-8 rounded-lg bg-green-600 flex items-center justify-center text-white font-bold shadow-inner">
-                        <UserIcon size={18} />
+                      <div className="h-8 w-8 relative rounded-lg bg-green-600 flex items-center justify-center text-white font-bold shadow-inner">
+                        {user?.avatarUrl ? (
+                          <SafeImage
+                            src={user?.avatarUrl}
+                            alt="Avatar"
+                            fill
+                            className="object-cover rounded-lg"
+                          />
+                        ) : (
+                          <User size={24} />
+                        )}
                       </div>
                       <div className="hidden text-left lg:block">
                         <span className="text-sm font-bold text-gray-700">
                           {user?.fullName.split(" ")[0]}
-                        </span>{" "}
+                        </span>
                       </div>
                       <ChevronDown
                         size={14}
@@ -275,9 +299,7 @@ export default function Navbar() {
 
                         <div className="mt-2 pt-2 border-t border-gray-50">
                           <button
-                            onClick={() => {
-                              /* add logout logic here */
-                            }}
+                            onClick={handleLogout}
                             className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
                           >
                             <LogOut size={18} />
@@ -325,9 +347,21 @@ export default function Navbar() {
                       />
                     </div>
                     {/* Mobile Profile Card */}
-                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-green-50 border border-green-100">
-                      <div className="h-12 w-12 rounded-xl bg-green-600 flex items-center justify-center text-white shadow-sm">
-                        <User size={24} />
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-3 p-3 rounded-2xl bg-green-50 border border-green-100"
+                    >
+                      <div className="h-12 w-12 relative rounded-xl bg-green-600 flex items-center justify-center text-white shadow-sm">
+                        {user?.avatarUrl ? (
+                          <SafeImage
+                            src={user?.avatarUrl}
+                            alt="Avatar"
+                            fill
+                            className="object-cover rounded-xl"
+                          />
+                        ) : (
+                          <User size={24} />
+                        )}
                       </div>
                       <div>
                         <p className="text-xs font-bold text-green-600 uppercase tracking-tight">
@@ -337,7 +371,7 @@ export default function Navbar() {
                           {user?.fullName.split(" ")[0]}
                         </p>
                       </div>
-                    </div>
+                    </Link>
 
                     {/* Quick Actions Grid */}
                     <div className="grid grid-cols-1 gap-3">
@@ -410,9 +444,7 @@ export default function Navbar() {
                         <Settings size={18} className="text-gray-400" />
                       </Link>
                       <button
-                        onClick={() => {
-                          /* logout logic */
-                        }}
+                        onClick={handleLogout}
                         className="flex w-full items-center justify-between py-3 px-3 font-semibold text-red-600 hover:bg-red-50 rounded-xl mt-2"
                       >
                         Keluar <LogOut size={18} />

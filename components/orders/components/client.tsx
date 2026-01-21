@@ -3,7 +3,7 @@
 import { OrderStatus } from "@/types";
 import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 
 export const CUSTOMER_ORDER_STATUSES = [
   { key: "ALL", label: "Semua" },
@@ -26,7 +26,7 @@ export function OrderFilters({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(initialSearch);
-  const [isPending, startTransition] = useTransition();
+  const [status, setStatus] = useState(initialStatus);
 
   // Debounce search update
   useEffect(() => {
@@ -51,9 +51,7 @@ export function OrderFilters({
       params.set("page", "1");
     }
 
-    startTransition(() => {
-      router.replace(`${pathname}?${params.toString()}`);
-    });
+    router.replace(`${pathname}?${params.toString()}`);
   };
 
   return (
@@ -75,19 +73,22 @@ export function OrderFilters({
 
       {/* Status Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-        {CUSTOMER_ORDER_STATUSES.map((status) => {
-          const isActive = (initialStatus || "ALL") === status.key;
+        {CUSTOMER_ORDER_STATUSES.map((stat) => {
+          const isActive = (status || "ALL") === stat.key;
           return (
             <button
-              key={status.key}
-              onClick={() => updateParam("status", status.key)}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+              key={stat.key}
+              onClick={() => {
+                setStatus(stat.key);
+                updateParam("status", stat.key);
+              }}
+              className={`whitespace-nowrap px-4 cursor-pointer py-2 rounded-full text-sm font-medium transition-colors border ${
                 isActive
                   ? "bg-blue-600 text-white border-blue-600"
                   : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
               }`}
             >
-              {status.label}
+              {stat.label}
             </button>
           );
         })}

@@ -37,11 +37,10 @@ export function useNewProductForm() {
       /** 2️⃣ Create product */
       const product = await addProduct({
         name: data.name,
-        price: data.variants[0].price,
-        stock: data.variants.reduce((acc, v) => acc + v.stock, 0),
         imageUrl: productImageUrl,
         description: data.description,
         categoryId: data.categoryId,
+        subcategoryId: data.subCategory,
       });
 
       /** 3️⃣ Upload variant images & build payload */
@@ -53,15 +52,15 @@ export function useNewProductForm() {
               : undefined;
 
           return {
-            productId: product.createProduct.id,
-            subcategoryID: data.subCategory,
+            productId: product.id,
+            subcategoryId: data.subCategory,
             quantityType: variant.quantityType,
             name: variant.name,
             price: variant.price,
             stock: variant.stock,
             imageUrl: variantImageUrl,
           };
-        })
+        }),
       );
 
       /** 4️⃣ Save variants */

@@ -17,7 +17,9 @@ import {
   VariantType,
 } from "@/types";
 
-async function addProduct(input: CreateProductInput): Promise<ProductType> {
+export async function addProduct(
+  input: CreateProductInput,
+): Promise<ProductType> {
   return graphqlFetch<
     { createProduct: ProductType },
     { input: CreateProductInput }
@@ -31,7 +33,7 @@ async function addProduct(input: CreateProductInput): Promise<ProductType> {
  * mutation CreateVariants($input: [NewVariant!]!)
  */
 export async function addProductVariants(
-  input: CreateProductVariantInput[]
+  input: CreateProductVariantInput[],
 ): Promise<VariantType[]> {
   return graphqlFetch<
     { createVariants: VariantType[] },
@@ -50,7 +52,7 @@ export async function addProductVariants(
  * query productList(...)
  */
 export async function getProductList(
-  vars?: PaginationVars
+  vars?: PaginationVars,
 ): Promise<ProductList> {
   return graphqlFetch<{ productList: ProductList }, PaginationVars>(
     GET_PRODUCT_LIST,
@@ -61,12 +63,12 @@ export async function getProductList(
         ...vars,
       },
       cache: "force-cache",
-    }
+    },
   ).then((res) => res.productList);
 }
 
 export async function getAdminProductList(
-  vars: PaginationVars
+  vars: PaginationVars,
 ): Promise<ProductList> {
   return graphqlFetch<{ productList: ProductList }, PaginationVars>(
     GET_PRODUCT_LIST,
@@ -77,7 +79,7 @@ export async function getAdminProductList(
         ...vars,
       },
       cache: "no-store",
-    }
+    },
   ).then((res) => res.productList);
 }
 

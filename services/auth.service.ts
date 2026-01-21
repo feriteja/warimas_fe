@@ -1,6 +1,7 @@
 import { graphqlFetch } from "@/lib/graphql/fetcher";
 import {
   LOGIN_MUTATION,
+  LOGOUT_MUTATION,
   REGISTER_MUTATION,
 } from "@/lib/graphql/mutation/auth.mutation";
 import {
@@ -18,6 +19,12 @@ export async function login(input: LoginInput): Promise<LoginResponse> {
       cache: "no-store",
     },
   ).then((res) => res.login);
+}
+
+export async function logout(): Promise<boolean> {
+  return graphqlFetch<{ logout: boolean }>(LOGOUT_MUTATION, {
+    cache: "no-store",
+  }).then((res) => res.logout);
 }
 
 export async function register(

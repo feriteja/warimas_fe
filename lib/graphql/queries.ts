@@ -1,7 +1,7 @@
 export const GET_CATEGORY = `
   query Category ($filter:String ,$limit:Int, $page:Int ) {
   category (filter:$filter,limit:$limit, page:$page) {
-   items{ id name 
+   items{ id name slug
     subcategories{
       id name
     }}

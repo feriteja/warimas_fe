@@ -78,18 +78,21 @@ export default function PaymentMethodCard({
     <section className="rounded-3xl bg-white p-8 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Metode Pembayaran</h2>
-        {status !== "EXPIRED" && status !== "PAID" && (
+        {/* {status !== "EXPIRED" && status !== "PAID" && (
           <button
-            onClick={() => setIsOpen(!isOpen)}
             className="text-sm font-semibold text-blue-600 hover:text-blue-700"
           >
             {isOpen ? "Tutup" : "Ubah"}
           </button>
-        )}
+        )} */}
       </div>
 
       {!isOpen ? (
-        <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex w-full items-center cursor-pointer gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-left transition-colors hover:bg-gray-100"
+        >
           <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center shadow-sm border border-gray-100">
             <svg
               className="w-6 h-6 text-gray-400"
@@ -113,7 +116,7 @@ export default function PaymentMethodCard({
               {paymentMethod ? "Metode pembayaran terpilih" : "Belum dipilih"}
             </p>
           </div>
-        </div>
+        </button>
       ) : (
         <div className="space-y-6">
           {paymentGroups.map((group) => (

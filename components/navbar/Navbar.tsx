@@ -115,14 +115,6 @@ export default function Navbar() {
     }
   }, [isLoggedIn, pathname, setItems]);
 
-  const goToCart = () => {
-    try {
-      router.push("/cart");
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   return (
     <>
       <header
@@ -163,12 +155,12 @@ export default function Navbar() {
                 >
                   Kategori
                 </Link>
-                <Link
+                {/* <Link
                   href="/promo"
                   className="hover:text-green-600 transition-colors"
                 >
                   Promo
-                </Link>
+                </Link> */}
               </div>
             </div>
 
@@ -202,12 +194,13 @@ export default function Navbar() {
             <div className="flex items-center gap-1 sm:gap-2">
               {/* Icons always visible on all screens */}
               <div className="flex items-center gap-0.5 sm:gap-1 sm:border-r sm:border-gray-200 sm:pr-2 sm:mr-2">
-                <NavIcon
-                  icon={<ShoppingCart size={22} />}
-                  count={cartCount}
-                  onClick={() => goToCart()}
-                  label="Keranjang"
-                />
+                <Link href={"/cart"}>
+                  <NavIcon
+                    icon={<ShoppingCart size={22} />}
+                    count={cartCount}
+                    label="Keranjang"
+                  />
+                </Link>
                 {/* <NavIcon
                   icon={<Bell size={22} />}
                   count={5}

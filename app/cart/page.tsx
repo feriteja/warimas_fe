@@ -1,30 +1,26 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
-import Image from "next/image";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
-  Trash2,
-  Minus,
-  Plus,
   ChevronLeft,
   ChevronRight,
-  Store,
-  ShoppingBag,
-  ShieldCheck,
-  XCircle,
   Loader2,
+  ShoppingBag,
+  XCircle,
 } from "lucide-react";
 import { MobileCheckout } from "./MobileCheckout";
-import { formatIDR } from "@/lib/utils";
 import { CartListResponse } from "@/types/cart";
 import {
   getCartList,
   updateCartList,
   deleteCartList,
 } from "@/services/cart.service";
-import { SafeImage } from "@/components/SafeImage";
 import { createCheckoutSession } from "@/services/order.service";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { CartItem } from "./CartItem";
+import { CartSummary } from "./CartSummary";
+import { DeleteModal } from "./DeleteModal";
 
 export default function CartPage() {
   //State
@@ -32,7 +28,6 @@ export default function CartPage() {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     type: "single" | "bulk";
@@ -66,7 +61,7 @@ export default function CartPage() {
       });
     } catch (error) {
       console.error("Failed to update quantity:", error);
-      setErrorMessage("Gagal memperbarui jumlah barang. Silakan coba lagi.");
+      toast.error("Gagal memperbarui jumlah barang. Silakan coba lagi.");
       // Revert/Refetch on error
       const res = await getCartList({ page: 1 });
       setCartData(res);
@@ -98,7 +93,7 @@ export default function CartPage() {
       await deleteCartList({ variantIds });
     } catch (error) {
       console.error("Failed to delete items:", error);
-      setErrorMessage("Gagal menghapus barang. Silakan coba lagi.");
+      toast.error("Gagal menghapus barang. Silakan coba lagi.");
 
       // 6. Rollback: Restore previous state on failure
       setCartData(previousCartData);
@@ -128,7 +123,7 @@ export default function CartPage() {
       await deleteCartList({ variantIds: [item.product.variant.id] });
     } catch (error) {
       console.error("Failed to delete item:", error);
-      setErrorMessage("Gagal menghapus barang. Silakan coba lagi.");
+      toast.error("Gagal menghapus barang. Silakan coba lagi.");
       // Revert/Refetch on error
       const res = await getCartList({ page: 1 });
       setCartData(res);
@@ -197,7 +192,7 @@ export default function CartPage() {
       router.push(`/checkout/${res.externalId}`);
     } catch (error) {
       console.error("Checkout failed:", error);
-      setErrorMessage("Gagal memproses checkout. Silakan coba lagi.");
+      toast.error("Gagal memproses checkout. Silakan coba lagi.");
       setIsCheckoutLoading(false);
     }
   };
@@ -216,49 +211,63 @@ export default function CartPage() {
     return { totalPrice, totalItems };
   }, [cartData, selectedItems]);
 
-  useEffect(() => {
-    const getCartData = async () => {
-      try {
-        setIsLoading(true);
-        const res = await getCartList({ page: 1 });
-        setCartData(res);
-      } catch (error) {
-        console.error("Failed to fetch cart data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getCartData();
+  const getCartData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await getCartList({ page: 1 });
+      setCartData(res);
+    } catch (error) {
+      console.error("Failed to fetch cart data:", error);
+      toast.error("Gagal memuat data keranjang.");
+      setCartData(undefined);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    getCartData();
+  }, [getCartData]);
 
   if (isLoading)
     return (
-      <div className="flex h-screen items-center justify-center text-slate-500">
-        Loading...
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+          <p className="text-slate-500">Memuat keranjang Anda...</p>
+        </div>
       </div>
     );
 
   if (!cartData)
     return (
-      <div className="flex h-screen items-center justify-center text-slate-500">
-        Gagal memuat data keranjang.
+      <div className="flex h-screen items-center justify-center bg-slate-50 p-4">
+        <div className="flex w-full max-w-md flex-col items-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <XCircle className="mb-4 h-12 w-12 text-red-400" />
+          <h3 className="text-xl font-bold text-slate-800">
+            Gagal Memuat Keranjang
+          </h3>
+          <p className="mt-2 text-slate-500">
+            Terjadi masalah saat mengambil data keranjang Anda. Silakan coba
+            muat ulang halaman.
+          </p>
+          <button
+            onClick={getCartData}
+            className="mt-6 rounded-xl bg-green-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-green-200 transition-all hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-xl"
+          >
+            Muat Ulang
+          </button>
+        </div>
       </div>
     );
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      {/* Error Alert */}
-      {errorMessage && (
-        <ErrorAlert
-          message={errorMessage}
-          onClose={() => setErrorMessage(null)}
-        />
-      )}
-
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        {...deleteModal}
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        type={deleteModal.type}
+        // itemId is handled by closure/state in parent if needed, but here we just need to close or confirm
         onClose={() => setDeleteModal((prev) => ({ ...prev, isOpen: false }))}
         onConfirm={confirmDelete}
       />
@@ -322,103 +331,14 @@ export default function CartPage() {
             <div className="space-y-4">
               {cartData.items.length > 0 &&
                 cartData.items.map((item) => (
-                  <div
+                  <CartItem
                     key={item.id}
-                    className="group relative flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-green-100 hover:shadow-md md:flex-row md:items-start"
-                  >
-                    {/* Checkbox */}
-                    <div className="absolute left-4 top-5 md:static md:mt-1">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.has(item.id)}
-                        onChange={() => toggleSelection(item.id)}
-                        className="h-5 w-5 cursor-pointer rounded border-slate-300 text-green-600 focus:ring-green-500"
-                      />
-                    </div>
-
-                    {/* Gambar Produk */}
-                    <div className="ml-8 md:ml-0 relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100 border border-slate-100">
-                      <SafeImage
-                        src={
-                          item.product?.variant.imageUrl ||
-                          "https://via.placeholder.com/150"
-                        }
-                        alt={item.product?.name || "Product Image"}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-
-                    {/* Detail Produk */}
-                    <div className="ml-8 md:ml-0 flex-1 flex flex-col justify-between">
-                      <div>
-                        {/* Nama Toko */}
-                        <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                          <Store size={14} className="text-green-500" />
-                          {item.product?.sellerName}
-                        </div>
-
-                        {/* Nama Produk */}
-                        <h3 className="text-base font-semibold text-slate-800 line-clamp-2 leading-snug">
-                          {item.product?.name}
-                        </h3>
-
-                        {/* Stok Info */}
-                        <p className="mt-1 text-xs text-slate-400">
-                          Sisa stok: {item.product?.variant.stock}
-                        </p>
-                      </div>
-
-                      {/* Harga Mobile (muncul di bawah nama saat layar kecil) */}
-                      <div className="mt-2 block md:hidden font-bold text-green-600">
-                        {formatIDR(item.product?.variant.price ?? 0)}
-                      </div>
-                    </div>
-
-                    {/* Kolom Kanan: Harga & Kontrol (Desktop) */}
-                    <div className="flex flex-row items-center justify-between gap-4 md:flex-col md:items-end md:justify-start pl-8 md:pl-0">
-                      {/* Harga Desktop */}
-                      <div className="hidden text-right md:block">
-                        <div className="text-lg font-bold text-slate-900">
-                          {formatIDR(item.product?.variant.price ?? 0)}
-                        </div>
-                      </div>
-
-                      {/* Kontrol Kuantitas & Hapus */}
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => openDeleteModal(item.id)}
-                          className="text-slate-400 hover:text-red-500 transition-colors"
-                          title="Hapus Barang"
-                        >
-                          <Trash2 size={20} />
-                        </button>
-
-                        <div className="flex h-9 items-center rounded-full border border-slate-300 bg-white">
-                          <button
-                            onClick={() => handleQuantityChange(item.id, -1)}
-                            disabled={item.quantity <= 1}
-                            className="flex h-full w-9 items-center justify-center rounded-l-full text-slate-600 hover:bg-slate-100 disabled:opacity-30"
-                          >
-                            <Minus size={14} strokeWidth={3} />
-                          </button>
-                          <span className="min-w-[2.5rem] text-center text-sm font-semibold text-slate-700">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => handleQuantityChange(item.id, 1)}
-                            disabled={
-                              !item.product ||
-                              item.quantity >= item.product.variant.stock
-                            }
-                            className="flex h-full w-9 items-center justify-center rounded-r-full text-slate-600 hover:bg-slate-100 disabled:opacity-30"
-                          >
-                            <Plus size={14} strokeWidth={3} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    item={item}
+                    isSelected={selectedItems.has(item.id)}
+                    onToggle={toggleSelection}
+                    onQuantityChange={handleQuantityChange}
+                    onDelete={openDeleteModal}
+                  />
                 ))}
             </div>
 
@@ -447,56 +367,13 @@ export default function CartPage() {
           </div>
 
           {/* --- KOLOM KANAN: Ringkasan Belanja (4 kolom) --- */}
-          <div className="hidden lg:block lg:col-span-4">
-            <div className="sticky top-6 space-y-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="mb-6 text-lg font-bold text-slate-800">
-                  Ringkasan Belanja
-                </h2>
-
-                <div className="space-y-3 border-b border-slate-100 pb-6">
-                  <div className="flex justify-between text-sm text-slate-600">
-                    <span>Total Barang ({summary.totalItems})</span>
-                    <span className="font-medium text-slate-900">
-                      {formatIDR(summary.totalPrice)}
-                    </span>
-                  </div>
-                  {/* Contoh Diskon (Hardcoded untuk UI) */}
-                  <div className="flex justify-between text-sm text-slate-600">
-                    <span>Total Diskon Barang</span>
-                    <span className="font-medium text-green-600">-Rp 0</span>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex items-center justify-between">
-                  <span className="text-base font-bold text-slate-800">
-                    Total Harga
-                  </span>
-                  <span className="text-xl font-bold text-green-600">
-                    {formatIDR(summary.totalPrice)}
-                  </span>
-                </div>
-
-                <button
-                  disabled={selectedItems.size === 0 || isCheckoutLoading}
-                  onClick={handleCheckout}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-green-200 transition-all hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-xl disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none disabled:translate-y-0"
-                >
-                  {isCheckoutLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    `Beli (${selectedItems.size})`
-                  )}
-                </button>
-              </div>
-
-              {/* Jaminan Keamanan (Trust Badge) */}
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-green-50 bg-green-50/50 p-4 text-xs font-medium text-green-700">
-                <ShieldCheck size={18} />
-                <span>Transaksi aman & terpercaya</span>
-              </div>
-            </div>
-          </div>
+          <CartSummary
+            totalPrice={summary.totalPrice}
+            totalItems={summary.totalItems}
+            selectedCount={selectedItems.size}
+            isLoading={isCheckoutLoading}
+            onCheckout={handleCheckout}
+          />
         </div>
       </main>
 
@@ -509,67 +386,3 @@ export default function CartPage() {
     </div>
   );
 }
-
-// --- Components ---
-
-const DeleteConfirmationModal = ({
-  isOpen,
-  type,
-  onClose,
-  onConfirm,
-}: {
-  isOpen: boolean;
-  type: "single" | "bulk";
-  onClose: () => void;
-  onConfirm: () => void;
-}) => {
-  if (!isOpen) return null;
-
-  const title = type === "single" ? "Hapus Barang?" : "Hapus Semua Barang?";
-  const message =
-    type === "single"
-      ? "Apakah Anda yakin ingin menghapus barang ini dari keranjang?"
-      : "Apakah Anda yakin ingin menghapus semua barang yang dipilih dari keranjang?";
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm transition-opacity animate-in fade-in">
-      <div className="w-full max-w-md scale-100 transform rounded-2xl bg-white p-6 shadow-2xl transition-all animate-in zoom-in-95">
-        <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-        <p className="mt-2 text-slate-600">{message}</p>
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
-          >
-            Batal
-          </button>
-          <button
-            onClick={onConfirm}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors shadow-sm"
-          >
-            Hapus
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ErrorAlert = ({
-  message,
-  onClose,
-}: {
-  message: string;
-  onClose: () => void;
-}) => (
-  <div className="fixed top-4 right-4 z-50 flex w-full max-w-sm items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 shadow-lg transition-all animate-in slide-in-from-top-5">
-    <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-    <div className="flex-1">
-      <h3 className="text-sm font-medium text-red-800">Terjadi Kesalahan</h3>
-      <div className="mt-1 text-sm text-red-700">{message}</div>
-    </div>
-    <button onClick={onClose} className="text-red-500 hover:text-red-700">
-      <XCircle className="h-5 w-5" />
-    </button>
-  </div>
-);

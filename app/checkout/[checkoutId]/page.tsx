@@ -48,6 +48,9 @@ export default async function CheckoutPage({ params }: Props) {
   const tax = Math.round(subtotal * 0.11);
   const totalAmount = subtotal + tax + sessionData.shippingFee;
 
+  const isConfirmDisabled =
+    !sessionData.addressId || !sessionData.paymentMethod;
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-32 pt-12">
       <div className="mx-auto max-w-6xl px-4">
@@ -168,7 +171,18 @@ export default async function CheckoutPage({ params }: Props) {
                   {/* Action Button */}
                   <div className="mt-6">
                     {sessionData.status !== "EXPIRED" ? (
-                      <ConfirmButton externalId={checkoutId} />
+                      <>
+                        <ConfirmButton
+                          externalId={checkoutId}
+                          disabled={isConfirmDisabled}
+                        />
+                        {isConfirmDisabled && (
+                          <p className="mt-2 text-xs text-center text-red-600 font-medium">
+                            Pilih alamat pengiriman dan metode pembayaran untuk
+                            melanjutkan.
+                          </p>
+                        )}
+                      </>
                     ) : (
                       <div className="w-full py-3 px-4 bg-red-50 border border-red-100 rounded-xl text-center">
                         <span className="text-sm font-semibold text-red-600 uppercase tracking-wider">

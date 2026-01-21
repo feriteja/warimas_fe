@@ -6,6 +6,7 @@ export interface Subcategory {
 export interface CategoryItem {
   id: string;
   name: string;
+  slug: string;
   subcategories: Subcategory[];
 }
 

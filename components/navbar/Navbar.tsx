@@ -43,6 +43,16 @@ export default function Navbar() {
   const [user, setUser] = useState<UserType | null>(null);
   const cartCount = items.length;
   // Sync search input with URL query param
+
+  // Routes where bottom navbar should NOT be shown
+  const HIDDEN_NAVBAR_ROUTES = ["/admin"];
+
+  const shouldHideNavbar = HIDDEN_NAVBAR_ROUTES.some((route) =>
+    pathname.startsWith(route),
+  );
+
+  if (shouldHideNavbar) return null;
+
   useEffect(() => {
     const q = searchParams.get("q");
     if (q) {
@@ -209,7 +219,7 @@ export default function Navbar() {
             <div className="flex items-center gap-1 sm:gap-2">
               {/* Icons always visible on all screens */}
               <div className="flex items-center gap-0.5 sm:gap-1 sm:border-r sm:border-gray-200 sm:pr-2 sm:mr-2">
-                <Link href={"/cart"}>
+                <Link href={isLoggedIn ? "/cart" : "/login"}>
                   <NavIcon
                     icon={<ShoppingCart size={22} />}
                     count={cartCount}

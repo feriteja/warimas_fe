@@ -35,7 +35,15 @@ export default function ProductDetailClient({
       toast.loading("Menambahkan...", { id: "cart" });
       await addToCart({ variantId: selectedVariant.id, quantity: qty });
       toast.success("Berhasil masuk keranjang", { id: "cart" });
-    } catch {
+    } catch (error: any) {
+      if (
+        error?.response?.status === 401 ||
+        error?.message === "unauthorized"
+      ) {
+        toast.dismiss("cart");
+        router.push("/login");
+        return;
+      }
       toast.error("Gagal menambahkan", { id: "cart" });
     } finally {
       setLoading(false);
@@ -48,9 +56,10 @@ export default function ProductDetailClient({
     if (!selectedVariant) return toast.error("Pilih varian dahulu");
 
     isCheckingOut.current = true;
+    let toastId: string | number | undefined;
     try {
       setLoading(true);
-      const toastId = showLoadingToast(
+      toastId = showLoadingToast(
         "Memproses Checkout",
         "Mohon tunggu sebentar...",
       );
@@ -63,8 +72,19 @@ export default function ProductDetailClient({
       const res = await createCheckoutSession({ items: [checkOutItem] });
       toast.dismiss(toastId);
       router.push(`/checkout/${res.externalId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Checkout failed:", error);
+      if (toastId) toast.dismiss(toastId);
+
+      if (
+        error?.response?.status === 401 ||
+        error?.message === "unauthorized"
+      ) {
+        router.push("/login");
+        isCheckingOut.current = false;
+        setLoading(false);
+        return;
+      }
       showErrorToast(
         "Gagal checkout",
         "Terjadi kesalahan saat memproses checkout.",

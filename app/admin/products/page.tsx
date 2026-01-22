@@ -31,10 +31,10 @@ export default function AdminProductsPage() {
     page,
   });
 
-  const products = data?.productList.items ?? [];
-  const totalItem = data?.productList.totalCount ?? 1;
+  const products = data?.items ?? [];
+  const totalItem = data?.totalCount ?? 1;
   const totalPage = Math.ceil(totalItem / PAGE_SIZE_PRODUCT_LIST);
-  const hasNext = data?.productList.hasNext;
+  const hasNext = data?.hasNext;
 
   const movePage = (nextPage: number) => {
     setPage(nextPage);

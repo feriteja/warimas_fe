@@ -10,13 +10,14 @@ import { capitalizeFirstLetter } from "@/lib/utils";
 import {
   addCategory,
   addSubCategory,
-  getCategories,
-  getSubCategories,
+  getCategory,
+  getSubCategory,
 } from "@/services/category.service";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useNewProductForm } from "./useNewProductForm";
 import { VariantFields } from "./VariantFields";
+import { CategoryItem, Subcategory } from "@/types";
 
 export function NewProductForm() {
   const {
@@ -32,16 +33,16 @@ export function NewProductForm() {
 
   const [preview, setPreview] = useState<string | null>(null);
 
-  const [categories, setCategories] = useState<CategoryType[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(
-    null
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryItem | null>(
+    null,
   );
-  const [subCategories, setSubCategories] = useState<SubCategoryType[]>([]);
+  const [subCategories, setSubCategories] = useState<Subcategory[]>([]);
 
   const fetchCategories = useCallback(async (name?: string) => {
     try {
-      const res = await getCategories(name);
-      setCategories(res.category);
+      const res = await getCategory({ name });
+      setCategories(res.items);
     } catch {
       showErrorToast("Gagal", "Gagal mengambil kategori");
     }
@@ -50,20 +51,25 @@ export function NewProductForm() {
   const fetchSubCategories = useCallback(
     async (categoryId: string, search?: string) => {
       try {
-        const res = await getSubCategories(categoryId, search);
-        setSubCategories(res.subCategory);
+        const res = await getSubCategory({
+          categoryId,
+          name: search || "",
+          limit: 100,
+          page: 1,
+        });
+        setSubCategories(res.items);
       } catch {
         showErrorToast("Gagal", "Gagal mengambil sub kategori");
       }
     },
-    []
+    [],
   );
 
   const onAddCategory = useCallback(
     async (name: string) => {
       const toastLoading = showLoadingToast(
         `Kategori: ${capitalizeFirstLetter(name)}`,
-        "Sedang membuat kategori"
+        "Sedang membuat kategori",
       );
 
       try {
@@ -77,14 +83,14 @@ export function NewProductForm() {
         showErrorToast("Gagal", "Sepertinya ada gangguan");
       }
     },
-    [fetchCategories]
+    [fetchCategories],
   );
 
   const onAddSubCategory = useCallback(
     async (categoryId: string, name: string) => {
       const toastLoading = showLoadingToast(
         `Sub Kategori: ${capitalizeFirstLetter(name)}`,
-        "Sedang membuat sub kategori"
+        "Sedang membuat sub kategori",
       );
 
       try {
@@ -98,10 +104,10 @@ export function NewProductForm() {
         showErrorToast("Gagal", "Sepertinya ada gangguan");
       }
     },
-    [fetchSubCategories]
+    [fetchSubCategories],
   );
 
-  const handleCategoryChange = (val: CategoryType | null) => {
+  const handleCategoryChange = (val: CategoryItem | null) => {
     setSelectedCategory(val);
     setSubCategories([]);
     setValue("categoryId", val?.id ?? "");
@@ -205,7 +211,7 @@ export function NewProductForm() {
           >
             Kategori
           </label>
-          <Combobox<CategoryType>
+          <Combobox<CategoryItem>
             options={categories}
             getLabel={(c) => c.name}
             getValue={(c) => c.id}
@@ -229,7 +235,7 @@ export function NewProductForm() {
             >
               Sub Kategori
             </label>
-            <Combobox<SubCategoryType>
+            <Combobox<Subcategory>
               options={subCategories}
               getLabel={(c) => c.name}
               getValue={(c) => c.id}

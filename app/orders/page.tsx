@@ -7,6 +7,7 @@ import { getOrderList } from "@/services/order.service";
 import { Order, OrderFilterInput, OrderStatus } from "@/types";
 import { cookies } from "next/headers";
 import Link from "next/link";
+import { Suspense } from "react";
 
 // Helper for currency formatting
 const formatCurrency = (amount: number, currency: string) => {
@@ -31,29 +32,18 @@ const formatDate = (dateString: string) => {
 export default async function OrderPage({
   searchParams,
 }: {
-  searchParams: { page?: string; status?: string; search?: string };
+  searchParams: Promise<{ page?: string; status?: string; search?: string }>;
 }) {
   const cookieStore = await cookies();
+  const params = await searchParams;
 
-  // 1. Parse Query Param (SSR)
-  const currentPage = Number(searchParams.page) || 1;
-  const status = searchParams.status || "ALL";
-  const search = searchParams.search || "";
+  // 1. Parse Query Param (SSR) for initial filter state
+  const status = params.status || "ALL";
+  const search = params.search || "";
 
-  // 2. Prepare Filter
-  const filter: OrderFilterInput = {};
-  if (status !== "ALL") {
-    filter.status = status as OrderStatus;
-  }
-  // Note: Add search filter mapping if supported by API, e.g., filter.search = search;
-
-  // 3. Fetch Data (Server-side)
-  const orderList = await getOrderList({
-    cookieHeader: cookieStore.toString(),
-    pagination: { page: currentPage },
-    filter,
-  });
-  const { items, pageInfo } = orderList;
+  // Serialize params to use as a key for Suspense
+  // This forces the Suspense boundary to reset when params change
+  const suspenseKey = JSON.stringify(params);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -68,37 +58,90 @@ export default async function OrderPage({
               Kelola pembelian dan faktur terbaru Anda
             </p>
           </div>
-          <div className="text-right">
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-400">
-              Total Pesanan: {pageInfo.totalItems}
-            </span>
-          </div>
         </div>
 
         {/* Filters */}
         <OrderFilters initialSearch={search} initialStatus={status} />
 
         {/* Order List */}
-        <div className="space-y-6">
-          {items.map((order) => (
-            <Link key={order.externalId} href={`/orders/${order.externalId}`}>
-              <OrderCard order={order} />
-            </Link>
-          ))}
-
-          {items.length === 0 && (
-            <div className="text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200">
-              Tidak ada pesanan.
-            </div>
-          )}
-        </div>
-
-        {/* Pagination Controls */}
-        <OrderPagination
-          page={pageInfo.page}
-          totalPages={pageInfo.totalPages}
-        />
+        <Suspense key={suspenseKey} fallback={<OrderListSkeleton />}>
+          <OrderListContent
+            params={params}
+            cookieHeader={cookieStore.toString()}
+          />
+        </Suspense>
       </div>
+    </div>
+  );
+}
+
+async function OrderListContent({
+  params,
+  cookieHeader,
+}: {
+  params: { page?: string; status?: string; search?: string };
+  cookieHeader: string;
+}) {
+  const currentPage = Number(params.page) || 1;
+  const status = params.status || "ALL";
+
+  const filter: OrderFilterInput = {};
+  if (status !== "ALL") {
+    filter.status = status as OrderStatus;
+  }
+
+  const orderList = await getOrderList({
+    cookieHeader,
+    pagination: { page: currentPage },
+    filter,
+  });
+  const { items, pageInfo } = orderList;
+
+  return (
+    <>
+      <div className="flex justify-end mb-4">
+        <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-400">
+          Total Pesanan: {pageInfo.totalItems}
+        </span>
+      </div>
+
+      <div className="space-y-6">
+        {items.map((order) => (
+          <Link key={order.externalId} href={`/orders/${order.externalId}`}>
+            <OrderCard order={order} />
+          </Link>
+        ))}
+
+        {items.length === 0 && (
+          <div className="text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200">
+            Tidak ada pesanan.
+          </div>
+        )}
+      </div>
+
+      <OrderPagination page={pageInfo.page} totalPages={pageInfo.totalPages} />
+    </>
+  );
+}
+
+function OrderListSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="flex justify-end mb-4">
+        <div className="h-6 w-32 bg-gray-200 rounded"></div>
+      </div>
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="bg-white rounded-lg border border-gray-200 h-48 overflow-hidden"
+        >
+          <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 h-16"></div>
+          <div className="p-6 space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

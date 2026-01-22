@@ -40,8 +40,9 @@ export interface ProductList {
 }
 
 export interface ProductsHome {
-  CategoryName: string;
-  Products: ProductType[];
+  categoryName: string;
+  categorySlug: string;
+  products: ProductType[];
 }
 
 export interface ProductsHomeListType {
@@ -51,11 +52,10 @@ export interface ProductsHomeListType {
 // Creating a product usually requires fewer fields
 export type CreateProductInput = {
   name: string;
-  price: number;
-  stock: number;
   imageUrl?: string;
   description?: string;
   categoryId: string;
+  subcategoryId: string;
 };
 
 export interface FilterState {

@@ -24,7 +24,11 @@ type LoginFormValues = z.infer<typeof LoginSchema>;
 // ----------------------------
 // Page Component
 // ----------------------------
-export default function LoginPage() {
+interface LoginFormProps {
+  onSuccess?: () => void;
+}
+
+export default function LoginPage({ onSuccess }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
@@ -55,7 +59,11 @@ export default function LoginPage() {
         localStorage.setItem("token", result.token);
       }
 
-      router.push("/");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/");
+      }
     } catch (err: any) {
       if (err.message === "invalid credentials") {
         setFormError("Email atau password salah");

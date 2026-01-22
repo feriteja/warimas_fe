@@ -127,11 +127,12 @@ export interface PaymentOrderInfoResponse {
 }
 
 export interface PaymentDetail {
-  method: string;
+  method: PaymentMethod;
   bank?: string;
   paymentCode?: string;
   referenceId: string;
   instructions: string[];
+  invoiceURL?: string;
 }
 
 export interface ShippingAddress {

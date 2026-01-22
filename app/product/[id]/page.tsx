@@ -14,7 +14,7 @@ export default async function Page({ params }: Props) {
 
   try {
     const { productDetail } = await getProductDetail({
-      id: id,
+      id,
       cookieHeader: cookieStore.toString(),
     });
 
@@ -22,14 +22,35 @@ export default async function Page({ params }: Props) {
       notFound();
     }
 
-    return <ProductDetailClient product={productDetail} />;
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: productDetail.name,
+      image: productDetail.imageUrl ? [productDetail.imageUrl] : [],
+      description: productDetail.description,
+      sku: productDetail.id,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "IDR",
+        price: productDetail.variants[0]?.price || 0,
+        availability: "https://schema.org/InStock",
+        seller: {
+          "@type": "Organization",
+          name: productDetail.sellerName,
+        },
+      },
+    };
+
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <ProductDetailClient product={productDetail} />
+      </>
+    );
   } catch (error: any) {
-    /**
-     * Example handling:
-     * - 404 from API → notFound()
-     * - 401/403 → let error boundary handle
-     * - 500 → error boundary
-     */
     if (error?.status === 404) {
       notFound();
     }

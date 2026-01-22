@@ -7,6 +7,7 @@ import { ProductFilterInput, ProductSortInput } from "@/types";
 import { ChevronDown, Loader2, Search, SlidersHorizontal } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { slugToName } from "@/lib/utils";
 
 interface SearchClientProps {
   initialProducts: any[];
@@ -44,7 +45,7 @@ export default function SearchClient({
     async (
       currentPage: number = page,
       currentFilters: ProductFilterInput = filters,
-      currentSort: ProductSortInput = sort
+      currentSort: ProductSortInput = sort,
     ) => {
       if (loading) return;
       setLoading(true);
@@ -70,7 +71,7 @@ export default function SearchClient({
         setLoading(false);
       }
     },
-    [loading, page, filters, sort]
+    [loading, page, filters, sort],
   );
 
   // Update URL
@@ -82,7 +83,7 @@ export default function SearchClient({
       params.delete("q");
       params.delete("minPrice");
       params.delete("maxPrice");
-      params.delete("cat");
+      params.delete("cs");
       params.delete("stock");
       params.delete("sortField");
       params.delete("sortDir");
@@ -92,7 +93,7 @@ export default function SearchClient({
         params.set("minPrice", newFilters.minPrice.toString());
       if (newFilters.maxPrice)
         params.set("maxPrice", newFilters.maxPrice.toString());
-      if (newFilters.categoryId) params.set("cat", newFilters.categoryId);
+      if (newFilters.categorySlug) params.set("cs", newFilters.categorySlug);
       if (newFilters.inStock) params.set("stock", "true");
 
       if (newSort.field) params.set("sortField", newSort.field);
@@ -100,7 +101,7 @@ export default function SearchClient({
 
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams],
   );
 
   // 3. Effects
@@ -158,7 +159,7 @@ export default function SearchClient({
       });
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore]
+    [loading, hasMore],
   );
 
   return (
@@ -180,6 +181,11 @@ export default function SearchClient({
               <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
                 {products.length} Barang
               </span>
+              {filters.categorySlug && (
+                <span className="font-semibold">
+                  {slugToName(filters.categorySlug)}
+                </span>
+              )}
             </div>
 
             {/* Sort Dropdown */}
@@ -192,8 +198,8 @@ export default function SearchClient({
                   {sort.field === "PRICE"
                     ? "Harga"
                     : sort.field === "NAME"
-                    ? "Nama"
-                    : "Terbaru"}
+                      ? "Nama"
+                      : "Terbaru"}
                   <ChevronDown size={14} className="text-gray-400" />
                 </button>
 
@@ -238,7 +244,6 @@ export default function SearchClient({
           </div>
         </div>
       </div>
-
       {/* Main Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">

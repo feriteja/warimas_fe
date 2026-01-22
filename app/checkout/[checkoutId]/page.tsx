@@ -3,12 +3,13 @@ import { formatIDR } from "@/lib/utils";
 import { getAddressList } from "@/services/address.service";
 import { getSessionData } from "@/services/order.service";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import AddressCard from "./AddressCard";
 import ConfirmButton from "./ConfirmButton";
 import PaymentMethodCard from "./PaymentMethodCard";
 
 interface Props {
-  params: { checkoutId: string };
+  params: Promise<{ checkoutId: string }>;
 }
 
 // ... imports
@@ -17,13 +18,28 @@ export default async function CheckoutPage({ params }: Props) {
   const { checkoutId } = await params;
   const cookieStore = await cookies();
 
-  const [sessionData, addressList] = await Promise.all([
+  const [sessionData, addressListRaw] = await Promise.all([
     getSessionData({
       externalId: checkoutId,
       cookieHeader: cookieStore.toString(),
     }),
     getAddressList({ cookieHeader: cookieStore.toString() }),
-  ]);
+  ]).catch((error) => {
+    console.error("Error fetching checkout data:", error);
+    if (
+      error instanceof Error &&
+      error.message.includes("checkout session not found")
+    ) {
+      notFound();
+    }
+    throw error;
+  });
+
+  if (!sessionData) {
+    notFound();
+  }
+
+  const addressList = addressListRaw || [];
 
   const subtotal = sessionData.items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -31,6 +47,9 @@ export default async function CheckoutPage({ params }: Props) {
   );
   const tax = Math.round(subtotal * 0.11);
   const totalAmount = subtotal + tax + sessionData.shippingFee;
+
+  const isConfirmDisabled =
+    !sessionData.addressId || !sessionData.paymentMethod;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-32 pt-12">
@@ -152,7 +171,18 @@ export default async function CheckoutPage({ params }: Props) {
                   {/* Action Button */}
                   <div className="mt-6">
                     {sessionData.status !== "EXPIRED" ? (
-                      <ConfirmButton externalId={checkoutId} />
+                      <>
+                        <ConfirmButton
+                          externalId={checkoutId}
+                          disabled={isConfirmDisabled}
+                        />
+                        {isConfirmDisabled && (
+                          <p className="mt-2 text-xs text-center text-red-600 font-medium">
+                            Pilih alamat pengiriman dan metode pembayaran untuk
+                            melanjutkan.
+                          </p>
+                        )}
+                      </>
                     ) : (
                       <div className="w-full py-3 px-4 bg-red-50 border border-red-100 rounded-xl text-center">
                         <span className="text-sm font-semibold text-red-600 uppercase tracking-wider">

@@ -28,7 +28,7 @@ query ProductList(
 
 export const GET_PRODUCT_HOME_LIST = `query{
  productsHome{
-  CategoryName Products{
+   categoryName categorySlug totalProducts products{
     id name variants{id name price stock imageUrl} description categoryName subcategoryName
       }
     }

@@ -20,3 +20,8 @@ export const REGISTER_MUTATION = `
     }
   }
 `;
+
+export const LOGOUT_MUTATION = ` 
+mutation Logout {
+  logout
+}`;

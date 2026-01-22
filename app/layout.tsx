@@ -11,8 +11,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  modal, // Add this prop
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode; // Add this type
 }>) {
   return (
     <html lang="en">
@@ -20,6 +22,7 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           {children}
+          {modal} {/* Render the modal slot */}
           <Toaster />
         </Providers>
       </body>

@@ -68,7 +68,6 @@ export default function Navbar() {
       setIsLoggedIn(false);
       setUser(null);
       setItems([]);
-      router.push("/login");
       router.refresh();
     } catch (error) {
       console.error("Logout failed", error);
@@ -113,6 +112,12 @@ export default function Navbar() {
       cancelled = true;
     };
   }, [pathname]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      router.refresh();
+    }
+  }, [isLoggedIn, router]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -266,7 +271,7 @@ export default function Navbar() {
                       </div>
                       <div className="hidden text-left lg:block">
                         <span className="text-sm font-bold text-gray-700">
-                          {user?.fullName.split(" ")[0]}
+                          {user?.fullName?.split(" ")[0] ?? "Pembeli"}
                         </span>
                       </div>
                       <ChevronDown

@@ -6,7 +6,6 @@ import Link from "next/link";
 export default async function ProductFeed() {
   try {
     const data = await getProductHomeList();
-    console.log("🚀 ~ ProductFeed ~ data:", data);
 
     if (!data || !data.productsHome || data.productsHome.length === 0) {
       return (

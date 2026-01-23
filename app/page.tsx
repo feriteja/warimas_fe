@@ -1,7 +1,9 @@
 import React, { Suspense } from "react";
 import HeroBanner from "@/components/home/HeroBanner"; // New component for professional look
 import ProductFeed from "@/components/home/ProductFeed";
-import RecommendationSection from "@/components/home/RecommendationSection";
+import RecommendationSection, {
+  RecommendationSkeleton,
+} from "@/components/home/RecommendationSection";
 import CategoriesSection from "@/components/home/CategoriesSection";
 
 export default function HomePage() {
@@ -15,7 +17,9 @@ export default function HomePage() {
         <CategoriesSection />
 
         {/* 3. Recommendations (Personalized) */}
-        <RecommendationSection />
+        <Suspense fallback={<RecommendationSkeleton />}>
+          <RecommendationSection />
+        </Suspense>
 
         {/* 4. Main Product Feed (Async with Error Boundary) */}
         <Suspense fallback={<ProductFeedSkeleton />}>

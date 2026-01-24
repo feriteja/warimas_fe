@@ -13,11 +13,11 @@ import { Order } from "@/types";
 // --- Configuration ---
 
 const STEP_FLOW = [
-  "ORDER_PLACED",
   "PENDING_PAYMENT",
-  "PROCESSING",
+  "PAID",
+  "ACCEPTED",
   "SHIPPED",
-  "DELIVERED",
+  "COMPLETED",
 ] as const;
 
 interface StepConfig {
@@ -29,33 +29,33 @@ interface StepConfig {
 
 const STEPS: StepConfig[] = [
   {
-    id: "ORDER_PLACED",
-    label: "Pesanan Dibuat",
-    description: "Pesanan Anda telah diterima",
-    icon: Package,
-  },
-  {
     id: "PENDING_PAYMENT",
     label: "Pembayaran",
-    description: "Menunggu konfirmasi",
+    description: "Menunggu pembayaran",
     icon: CreditCard,
   },
   {
-    id: "PROCESSING",
+    id: "PAID",
+    label: "Dibayar",
+    description: "Pembayaran diterima",
+    icon: Check,
+  },
+  {
+    id: "ACCEPTED",
     label: "Diproses",
-    description: "Kami sedang mengemas barang Anda",
-    icon: Clock,
+    description: "Pesanan sedang diproses",
+    icon: Package,
   },
   {
     id: "SHIPPED",
     label: "Dikirim",
-    description: "Dalam perjalanan menuju Anda",
+    description: "Dalam perjalanan",
     icon: Truck,
   },
   {
-    id: "DELIVERED",
-    label: "Terkirim",
-    description: "Paket telah diterima",
+    id: "COMPLETED",
+    label: "Selesai",
+    description: "Pesanan telah diterima",
     icon: Home,
   },
 ];
@@ -88,7 +88,7 @@ const VerticalStepNode = ({
                If this step is completed, fill the line connecting to the next step.
             */}
           {status === "completed" && (
-            <div className="absolute top-0 left-0 w-full h-full bg-indigo-600 animate-in fade-in duration-1000 origin-top" />
+            <div className="absolute top-0 left-0 w-full h-full bg-emerald-600 animate-in fade-in duration-1000 origin-top" />
           )}
         </div>
       )}
@@ -101,10 +101,10 @@ const VerticalStepNode = ({
             transition-all duration-300 shadow-sm
             ${
               status === "completed"
-                ? "bg-indigo-600 border-indigo-600 text-white"
+                ? "bg-emerald-600 border-emerald-600 text-white"
                 : status === "current"
-                ? "bg-white border-indigo-600 text-indigo-600 ring-4 ring-indigo-50"
-                : "bg-white border-slate-200 text-slate-300"
+                  ? "bg-white border-emerald-600 text-emerald-600 ring-4 ring-emerald-50"
+                  : "bg-white border-slate-200 text-slate-300"
             }
           `}
         >
@@ -123,10 +123,10 @@ const VerticalStepNode = ({
             text-sm font-bold uppercase tracking-wide
             ${
               status === "current"
-                ? "text-indigo-700"
+                ? "text-emerald-700"
                 : status === "completed"
-                ? "text-slate-800"
-                : "text-slate-400"
+                  ? "text-slate-800"
+                  : "text-slate-400"
             }
           `}
         >
@@ -143,6 +143,7 @@ const VerticalStepNode = ({
 function HeaderProgressTrackVertical({ order }: { order: Order }) {
   // Logic: Calculate active index
   const activeIndex = useMemo(() => {
+    if (order.status === "COMPLETED") return STEPS.length;
     const index = STEP_FLOW.indexOf(order.status as any);
     return index === -1 ? 0 : index;
   }, [order.status]);
@@ -162,8 +163,8 @@ function HeaderProgressTrackVertical({ order }: { order: Order }) {
             index < activeIndex
               ? "completed"
               : index === activeIndex
-              ? "current"
-              : "upcoming";
+                ? "current"
+                : "upcoming";
 
           return (
             <VerticalStepNode

@@ -42,3 +42,12 @@ export type InputPackages = {
   limit?: number;
   page?: number;
 };
+
+export type InputAddPackages = {
+  name: string;
+  items: {
+    variantId: string;
+    quantity: number;
+  }[];
+  type: "personal" | "promotion";
+};

@@ -29,6 +29,7 @@ import {
 
 export async function createCheckoutSession(
   input: CreateCheckoutSessionInput,
+  cookieHeader?: string,
 ): Promise<CheckoutSessionResponse> {
   const res = await graphqlFetch<
     { createCheckoutSession: CheckoutSessionResponse },
@@ -36,6 +37,7 @@ export async function createCheckoutSession(
   >(CREATE_SESSION_CHECKOUT, {
     variables: { input },
     cache: "no-store",
+    cookieHeader,
   });
 
   return res.createCheckoutSession;

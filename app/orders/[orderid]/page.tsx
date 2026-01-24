@@ -17,6 +17,7 @@ import HeaderProgressTrackVertical from "@/components/orders/HeaderProgressTrack
 import HeaderProgressTrackHorizontal from "@/components/orders/HeaderProgressTrackHorizontal";
 import { cookies } from "next/headers";
 import { getOrderDetail } from "@/services/order.service";
+import OrderActionButtons from "./OrderActionButtons";
 
 interface PageProps {
   params: { orderId: string };
@@ -211,6 +212,8 @@ export default async function OrderDetailPage({ params }: PageProps) {
                   <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-sm transition-all">
                     Bayar Sekarang
                   </button>
+                ) : order.status === "COMPLETED" ? (
+                  <OrderActionButtons order={order} />
                 ) : (
                   <div className="flex items-center justify-center gap-2 text-green-700 font-medium bg-green-100 py-2 rounded-lg">
                     <CheckCircle2 className="w-5 h-5" />

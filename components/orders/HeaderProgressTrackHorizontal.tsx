@@ -14,11 +14,11 @@ import { Order } from "@/types";
 
 // Define the logical flow of your order statuses
 const STEP_FLOW = [
-  "ORDER_PLACED",
   "PENDING_PAYMENT",
-  "PROCESSING",
+  "PAID",
+  "ACCEPTED",
   "SHIPPED",
-  "DELIVERED",
+  "COMPLETED",
 ] as const;
 
 interface StepConfig {
@@ -28,11 +28,11 @@ interface StepConfig {
 }
 
 const STEPS: StepConfig[] = [
-  { id: "ORDER_PLACED", label: "Dipesan", icon: Package },
   { id: "PENDING_PAYMENT", label: "Pembayaran", icon: CreditCard },
-  { id: "PROCESSING", label: "Diproses", icon: Clock },
+  { id: "PAID", label: "Dibayar", icon: Check },
+  { id: "ACCEPTED", label: "Diproses", icon: Package },
   { id: "SHIPPED", label: "Dikirim", icon: Truck },
-  { id: "DELIVERED", label: "Terkirim", icon: Home },
+  { id: "COMPLETED", label: "Selesai", icon: Home },
 ];
 
 // --- Helper Components ---
@@ -61,10 +61,10 @@ const StepNode = ({
           transition-all duration-500 ease-out shadow-sm
           ${
             status === "completed"
-              ? "bg-indigo-600 border-indigo-600 text-white scale-100"
+              ? "bg-emerald-600 border-emerald-600 text-white scale-100"
               : status === "current"
-              ? "bg-white border-indigo-600 text-indigo-600 scale-110 ring-4 ring-indigo-50"
-              : "bg-white border-slate-200 text-slate-300"
+                ? "bg-white border-emerald-600 text-emerald-600 scale-110 ring-4 ring-emerald-50"
+                : "bg-white border-slate-200 text-slate-300"
           }
         `}
       >
@@ -82,10 +82,10 @@ const StepNode = ({
           transition-colors duration-300
           ${
             status === "current"
-              ? "text-indigo-700"
+              ? "text-emerald-700"
               : status === "completed"
-              ? "text-slate-700"
-              : "text-slate-400"
+                ? "text-slate-700"
+                : "text-slate-400"
           }
         `}
       >
@@ -100,6 +100,16 @@ const StepNode = ({
 function HeaderProgressTrackHorizontal({ order }: { order: Order }) {
   // Logic: Calculate current step index and progress percentage
   const progressState = useMemo(() => {
+    // Handle 'COMPLETED' status explicitly. When an order is 'COMPLETED',
+    // it signifies that all steps have been finished.
+    if (order.status === "COMPLETED") {
+      return {
+        // By setting activeIndex to the total number of steps, all steps will be marked as 'completed'.
+        activeIndex: STEPS.length,
+        progressPercentage: 100,
+      };
+    }
+
     // Find the index of the order's current status in our flow definition
     const currentIndex = STEP_FLOW.indexOf(order.status as any);
     // Ensure we handle cases where status might not match (fallback to 0)
@@ -125,7 +135,7 @@ function HeaderProgressTrackHorizontal({ order }: { order: Order }) {
         <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Pesanan <span className="text-indigo-600">#{order.id}</span>
+              Pesanan <span className="text-emerald-600">#{order.id}</span>
             </h1>
             <p className="text-slate-500 text-sm mt-1 font-medium">
               Dipesan pada {formattedDate}
@@ -148,7 +158,7 @@ function HeaderProgressTrackHorizontal({ order }: { order: Order }) {
 
             {/* Active Track (Colored Line) - Dynamic Width */}
             <div
-              className="absolute top-5 left-0 h-1 bg-indigo-600 rounded-full -z-10 transition-all duration-700 ease-in-out"
+              className="absolute top-5 left-0 h-1 bg-emerald-600 rounded-full -z-10 transition-all duration-700 ease-in-out"
               style={{ width: `${progressState.progressPercentage}%` }}
             />
 
@@ -159,8 +169,8 @@ function HeaderProgressTrackHorizontal({ order }: { order: Order }) {
                   index < progressState.activeIndex
                     ? "completed"
                     : index === progressState.activeIndex
-                    ? "current"
-                    : "upcoming";
+                      ? "current"
+                      : "upcoming";
 
                 return (
                   <StepNode

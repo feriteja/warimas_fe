@@ -25,5 +25,6 @@ export async function addPackage(
     variables: { input },
     cache: "no-store",
     cookieHeader,
+    isStrict: true,
   }).then((res) => res.addPackage);
 }

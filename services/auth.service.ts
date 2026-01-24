@@ -17,6 +17,7 @@ export async function login(input: LoginInput): Promise<LoginResponse> {
     {
       variables: { input },
       cache: "no-store",
+      isStrict: true,
     },
   ).then((res) => res.login);
 }
@@ -35,6 +36,7 @@ export async function register(
     {
       variables: { input },
       cache: "no-store",
+      isStrict: true,
     },
   ).then((res) => res.register);
 }

@@ -11,7 +11,7 @@ import { CategoryData, SubCategoryData } from "@/types";
  * mutation AddCategory($name: String!)
  */
 export async function addCategory(
-  name: string
+  name: string,
 ): Promise<{ id: string; name: string }> {
   return graphqlFetch<
     { addCategory: { id: string; name: string } },
@@ -19,6 +19,7 @@ export async function addCategory(
   >(ADD_CATEGORY, {
     variables: { name },
     cache: "no-store",
+    isStrict: true,
   }).then((res) => res.addCategory);
 }
 
@@ -27,7 +28,7 @@ export async function addCategory(
  */
 export async function addSubCategory(
   categoryID: string,
-  name: string
+  name: string,
 ): Promise<{ id: string; name: string }> {
   return graphqlFetch<
     { addSubCategory: { id: string; name: string } },
@@ -35,6 +36,7 @@ export async function addSubCategory(
   >(ADD_SUB_CATEGORY, {
     variables: { categoryID, name },
     cache: "no-store",
+    isStrict: true,
   }).then((res) => res.addSubCategory);
 }
 

@@ -26,6 +26,7 @@ export async function addProduct(
   >(ADD_PRODUCT, {
     variables: { input },
     cache: "no-store",
+    isStrict: true,
   }).then((res) => res.createProduct);
 }
 
@@ -41,6 +42,7 @@ export async function addProductVariants(
   >(ADD_PRODUCT_VARIANT, {
     variables: { input },
     cache: "no-store",
+    isStrict: true,
   }).then((res) => res.createVariants);
 }
 

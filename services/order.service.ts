@@ -38,6 +38,7 @@ export async function createCheckoutSession(
     variables: { input },
     cache: "no-store",
     cookieHeader,
+    isStrict: true,
   });
 
   return res.createCheckoutSession;
@@ -100,6 +101,7 @@ export async function confirmCheckoutSession({
   }>(CONFIRM_CHECKOUT_SESSION, {
     cache: "no-store",
     variables: { input: { externalId } },
+    isStrict: true,
   }).then((res) => res.confirmCheckoutSession);
 }
 

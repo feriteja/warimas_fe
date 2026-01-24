@@ -14,6 +14,7 @@ export type GraphqlFetchOptions<TVariables> = {
   variables?: TVariables;
   headers?: HeadersInit;
   cookieHeader?: string;
+  deviceId?: string;
   /**
    * Use "no-store" for mutations or user-specific data
    * Use "force-cache" for public queries
@@ -37,7 +38,7 @@ function getGraphqlUrl(): string {
 
 export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
   query: string,
-  options: GraphqlFetchOptions<TVariables> = {}
+  options: GraphqlFetchOptions<TVariables> = {},
 ): Promise<TData> {
   const {
     variables,
@@ -45,7 +46,33 @@ export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
     cache = "no-store",
     timeoutMs = DEFAULT_TIMEOUT,
     cookieHeader,
+    deviceId,
   } = options;
+
+  let finalDeviceId = deviceId;
+
+  if (!finalDeviceId) {
+    if (typeof window === "undefined") {
+      try {
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        finalDeviceId = cookieStore.get("deviceId")?.value;
+      } catch {
+        // Ignore errors (e.g. if not in a request context)
+      }
+    } else {
+      try {
+        finalDeviceId = localStorage.getItem("deviceId") || undefined;
+        // Fallback: Check cookies if localStorage is empty (e.g. set by Middleware)
+        if (!finalDeviceId) {
+          const match = document.cookie.match(
+            new RegExp("(^| )deviceId=([^;]+)"),
+          );
+          if (match) finalDeviceId = match[2];
+        }
+      } catch {}
+    }
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -66,7 +93,9 @@ export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
       next: { revalidate: 140 },
       headers: {
         "Content-Type": "application/json",
+        "X-Client-Type": "frontend-heavy",
         ...(cookieHeader && { Cookie: cookieHeader }),
+        ...(finalDeviceId && { "X-Device-ID": finalDeviceId }),
         ...headers,
       },
       body: bodyFetch,

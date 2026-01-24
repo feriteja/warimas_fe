@@ -35,6 +35,8 @@ export default function CartPage() {
   }>({ isOpen: false, type: "single" });
   const router = useRouter();
 
+  console.log({ cartData });
+
   const handleQuantityChange = async (itemId: string, delta: number) => {
     const item = cartData?.items.find((i) => i.id === itemId);
     if (!item || !item.product) return;

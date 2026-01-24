@@ -135,7 +135,8 @@ function HeaderProgressTrackHorizontal({ order }: { order: Order }) {
         <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Pesanan <span className="text-emerald-600">#{order.id}</span>
+              Pesanan{" "}
+              <span className="text-emerald-600">#{order.externalId}</span>
             </h1>
             <p className="text-slate-500 text-sm mt-1 font-medium">
               Dipesan pada {formattedDate}

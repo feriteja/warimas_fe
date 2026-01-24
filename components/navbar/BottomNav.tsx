@@ -6,10 +6,10 @@ export default function BottomNavbar() {
   const pathname = usePathname();
 
   // Routes where bottom navbar should NOT be shown
-  const HIDDEN_NAVBAR_ROUTES = ["/product", "/checkout", "/login"];
+  const HIDDEN_NAVBAR_ROUTES = ["/product", "/checkout", "/login", "/invoice"];
 
   const shouldHideNavbar = HIDDEN_NAVBAR_ROUTES.some((route) =>
-    pathname.startsWith(route)
+    pathname.startsWith(route),
   );
 
   if (shouldHideNavbar) return null;

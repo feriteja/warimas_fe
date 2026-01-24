@@ -1,5 +1,5 @@
 // d:\project\warimas\warimas_fe\app\cart\CartItem.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Minus, Plus, Store, Trash2 } from "lucide-react";
 import { SafeImage } from "@/components/SafeImage";
 import { formatIDR } from "@/lib/utils";
@@ -22,15 +22,28 @@ export function CartItem({
   onQuantityChange,
   onDelete,
 }: CartItemProps) {
+  const stock = item.product?.variant.stock ?? 0;
+  const isOutOfStock = stock === 0;
+
+  useEffect(() => {
+    if (!isOutOfStock && item.quantity > stock) {
+      const delta = stock - item.quantity;
+      onQuantityChange(item.id, delta);
+    }
+  }, [item.quantity, stock, isOutOfStock, item.id, onQuantityChange]);
+
   return (
-    <div className="group relative flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-green-100 hover:shadow-md md:flex-row md:items-start">
+    <div
+      className={`group relative flex flex-col gap-4 rounded-xl border border-slate-200 p-5 shadow-sm transition-all md:flex-row md:items-start ${isOutOfStock ? "bg-slate-50 opacity-60" : "bg-white hover:border-green-100 hover:shadow-md"}`}
+    >
       {/* Checkbox */}
       <div className="absolute left-4 top-5 md:static md:mt-1">
         <input
           type="checkbox"
           checked={isSelected}
           onChange={() => onToggle(item.id)}
-          className="h-5 w-5 cursor-pointer rounded border-slate-300 text-green-600 focus:ring-green-500"
+          disabled={isOutOfStock}
+          className="h-5 w-5 cursor-pointer rounded border-slate-300 text-green-600 focus:ring-green-500 disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
 
@@ -61,8 +74,10 @@ export function CartItem({
           </h3>
 
           {/* Stock Info */}
-          <p className="mt-1 text-xs text-slate-400">
-            Sisa stok: {item.product?.variant.stock}
+          <p
+            className={`mt-1 text-xs ${isOutOfStock ? "text-red-500 font-medium" : "text-slate-400"}`}
+          >
+            {isOutOfStock ? "Stok Habis" : `Sisa stok: ${stock}`}
           </p>
         </div>
 
@@ -104,9 +119,7 @@ export function CartItem({
             </span>
             <button
               onClick={() => onQuantityChange(item.id, 1)}
-              disabled={
-                !item.product || item.quantity >= item.product.variant.stock
-              }
+              disabled={!item.product || item.quantity >= stock || isOutOfStock}
               className="flex h-full w-9 items-center justify-center rounded-r-full text-slate-600 hover:bg-slate-100 disabled:opacity-30"
             >
               <Plus size={14} strokeWidth={3} />

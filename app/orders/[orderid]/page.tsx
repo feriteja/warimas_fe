@@ -106,7 +106,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
                       <p className="text-gray-500 text-sm mb-3">
                         {item.variant.name}
                       </p>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 inline-flex px-2 py-1 rounded border border-gray-100">
+                      <div className="items-center gap-2 text-sm text-gray-600 bg-gray-50 inline-flex px-2 py-1 rounded border border-gray-100">
                         <span>Jml: {item.quantity}</span>
                         <span className="text-gray-300">|</span>
                         <span>{formatIDR(item.pricing.price)} / unit</span>

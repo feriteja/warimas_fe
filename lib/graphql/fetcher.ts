@@ -15,6 +15,7 @@ export type GraphqlFetchOptions<TVariables> = {
   headers?: HeadersInit;
   cookieHeader?: string;
   deviceId?: string;
+  isStrict?: boolean;
   /**
    * Use "no-store" for mutations or user-specific data
    * Use "force-cache" for public queries
@@ -47,6 +48,7 @@ export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
     timeoutMs = DEFAULT_TIMEOUT,
     cookieHeader,
     deviceId,
+    isStrict = false,
   } = options;
 
   let finalDeviceId = deviceId;
@@ -94,6 +96,7 @@ export async function graphqlFetch<TData, TVariables = Record<string, unknown>>(
       headers: {
         "Content-Type": "application/json",
         "X-Client-Type": "frontend-heavy",
+        ...(isStrict && { "X-Action": "strict" }),
         ...(cookieHeader && { Cookie: cookieHeader }),
         ...(finalDeviceId && { "X-Device-ID": finalDeviceId }),
         ...headers,
